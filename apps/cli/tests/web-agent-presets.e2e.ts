@@ -43,7 +43,7 @@ const MINIMAL_BASH_DESCRIPTION = `Run commands in a bash shell
 /**
  * Boot the shipped Web composition, minus the rows that would bind a port,
  * touch the network, or write outside the test. Everything that decides an
- * agent's capabilities is the real thing, including both shipped presets.
+ * agent's capabilities is the real thing, including every shipped preset.
  */
 async function bootWeb(
   settingsFile: string,
@@ -216,10 +216,10 @@ describe('the shipped Web composition', () => {
     }
   })
 
-  it('supplies both shipped presets, and only those, from the system root', async () => {
+  it('supplies the five shipped presets, and only those, from the system root', async () => {
     const listed = await ctx.agentPresets.list()
 
-    expect(listed.map(preset => preset.id).sort()).toEqual(['code', 'cordis', 'minimal', 'standard'])
+    expect(listed.map(preset => preset.id).sort()).toEqual(['automation', 'code', 'cordis', 'minimal', 'standard'])
     expect(listed.every(preset => preset.trust === 'system')).toBe(true)
     expect(ctx.agentPresets.defaultId).toBe('standard')
   })
@@ -314,6 +314,43 @@ describe('the shipped Web composition', () => {
     } finally {
       await handle.dispose()
     }
+  })
+
+  it('composes the automation agent with the devecocli tool and its skill', async () => {
+    const handle = await ctx.agents.create({
+      sessionId: SessionId('preset-automation'),
+      setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'automation').then(() => undefined),
+    })
+    try {
+      // The EXACT catalog, not a spot-check: `standard` plus the one HarmonyOS
+      // tool, filtered of the ripgrep-dependent tools for the same reason the
+      // standard case above filters them.
+      expect(toolNames(ctx, handle.agent).filter(name => name !== 'glob' && name !== 'grep')).toEqual([
+        'ask_user_question', 'bash', 'create_goal', 'devecocli', 'edit', 'exit_plan_mode',
+        'get_goal', 'interrupt_agent', 'job_kill', 'job_list', 'job_output', 'list_agents', 'ralph', 'read', 'read_image', 'send_message', 'skill',
+        'subagent', 'subagent_fork', 'todo_write', 'update_goal', 'web_search',
+        'workflow', 'write',
+      ])
+
+      // The preset's own deveco-cli skill registers into ITS layer of the host
+      // registry: the automation agent's view carries it, the global view does
+      // not.
+      const scoped = (await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)
+      expect(scoped).toContain('deveco-cli')
+      expect((await ctx.skills.list()).map(skill => skill.name)).not.toContain('deveco-cli')
+    } finally {
+      await handle.dispose()
+    }
+  })
+
+  it('ships the deveco-cli skill inside the automation preset directory', async () => {
+    // The preset's skill root is derived from its own `baseUrl`, so the skill
+    // travels with the directory wherever the preset is installed.
+    const skill = join(
+      CONFIG_DIR, 'agent-presets', 'automation', 'skills', 'deveco-cli', 'SKILL.md',
+    )
+
+    expect((await readFile(skill, 'utf8')).startsWith('---\nname: deveco-cli')).toBe(true)
   })
 
   it('presents `code` as Code Mode without disturbing a native session beside it', async () => {

@@ -8,6 +8,7 @@ export type AgentPresetSettingsKey =
   | 'presetCodeName' | 'presetCodeDescription'
   | 'presetMinimalName' | 'presetMinimalDescription'
   | 'presetCordisName' | 'presetCordisDescription'
+  | 'presetAutomationName' | 'presetAutomationDescription'
   | 'duplicate' | 'duplicateUnavailable' | 'delete' | 'presetId' | 'presetIdPlaceholder' | 'copyOf'
   | 'displayName' | 'displayNamePlaceholder'
   | 'inUse' | 'noDescription' | 'builtInGroup' | 'customGroup'
@@ -46,6 +47,9 @@ export const en: Record<AgentPresetSettingsKey, string> = {
   presetCordisName: 'Creator mode',
   presetCordisDescription:
     'Built for creating custom agent presets, with all Standard mode capabilities plus runtime inspection, plugin experiments, and preset-authoring guidance.',
+  presetAutomationName: 'Automation mode',
+  presetAutomationDescription:
+    'Runs HarmonyOS UI tests on a real connected device through the DevEco CLI, with all Standard mode capabilities plus evidence capture and bug reporting.',
   duplicate: 'Duplicate',
   duplicateUnavailable: 'This deployment has no writable preset directory',
   delete: 'Delete',
@@ -106,6 +110,8 @@ export const zh: Record<AgentPresetSettingsKey, string> = {
   presetMinimalDescription: '仅提供持久 bash 与 str_replace_editor 的双工具编码 Agent。',
   presetCordisName: '创造模式',
   presetCordisDescription: '用于创建自定义 Agent preset：具备标准模式的全部能力，并提供运行时检查、插件实验和 preset 创作指导。',
+  presetAutomationName: '自动化测试模式',
+  presetAutomationDescription: '用于在连接的真机上执行鸿蒙应用 UI 自动化测试：具备标准模式的全部能力，并通过 DevEco CLI 驱动设备、采集证据与记录 bug。',
   duplicate: '复制',
   duplicateUnavailable: '此部署未配置可写的预设目录',
   delete: '删除',
@@ -171,6 +177,7 @@ const BUILT_IN_PRESET_KEYS: Readonly<Partial<Record<string, PresetLocaleKeys>>> 
   code: { name: 'presetCodeName', description: 'presetCodeDescription' },
   minimal: { name: 'presetMinimalName', description: 'presetMinimalDescription' },
   cordis: { name: 'presetCordisName', description: 'presetCordisDescription' },
+  automation: { name: 'presetAutomationName', description: 'presetAutomationDescription' },
 }
 
 /**
