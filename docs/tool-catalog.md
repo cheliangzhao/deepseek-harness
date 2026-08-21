@@ -40,6 +40,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-experimental-tool-agent-team` | `followup_task`, `interrupt_agent`, `list_agents`, `send_message`, `spawn_teammate`, `team_task_create`, `team_task_get`, `team_task_list`, `team_task_update`, `wait_agent` | `ctx.tools`, `ctx.systemPrompt`, `ctx.agentTeams`, `an exact live Team member Agent` | `tool/call`, `team/member`, `team/message/queued`, `team/message/delivered`, `team/task`, `tool/result` | - | All ten tools are scoped to implicit Team Leads and durable teammates. The shipped dsh-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names. |
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
+| `@deepseek-ai/dsh-tool-harmonyos-uitest` | `devecocli` | `ctx.tools`, `ctx.subprocess`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | The installed deveco-cli skill owns command guidance; the tool accepts only its fixed base command families as plain argv. |
 | `@deepseek-ai/dsh-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
 
 <a id="deepseek-aidsh-tool-ask-user"></a>
@@ -2168,6 +2169,35 @@ Constraints: concurrency and total-agent caps apply; no filesystem, network, tim
 ```
 
 Source: [`packages/workflow/tool-workflow/src/index.ts`](../packages/workflow/tool-workflow/src/index.ts)
+
+<a id="deepseek-aidsh-tool-harmonyos-uitest"></a>
+
+## `@deepseek-ai/dsh-tool-harmonyos-uitest`
+
+### `devecocli`
+
+Run an allow-listed DevEco CLI command with a plain argv vector.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "argv": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "argv"
+  ]
+}
+```
+
+Source: [`packages/harmony/tool-harmonyos-uitest/src/index.ts`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
+
+The installed deveco-cli skill owns command guidance; the tool accepts only its fixed base command families as plain argv.
 
 <a id="deepseek-aidsh-tool-web"></a>
 

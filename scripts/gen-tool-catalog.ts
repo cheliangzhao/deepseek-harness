@@ -66,6 +66,7 @@ import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
 import VmWorkflowEngine from '@deepseek-ai/dsh-workflow-worker-thread'
 import * as ToolRalph from '@deepseek-ai/dsh-tool-ralph'
 import * as ToolWorkflow from '@deepseek-ai/dsh-tool-workflow'
+import * as ToolUitest from '@deepseek-ai/dsh-tool-harmonyos-uitest'
 import { githubSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
@@ -588,6 +589,18 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(VmWorkflowEngine, { provider: 'mock' })
       await ctx.plugin(ToolWorkflow)
     },
+  },
+  {
+    pkg: '@deepseek-ai/dsh-tool-harmonyos-uitest',
+    dir: 'tool-harmonyos-uitest',
+    source: 'packages/harmony/tool-harmonyos-uitest/src/index.ts',
+    requires: ['ctx.tools', 'ctx.subprocess', 'ctx.systemPrompt'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(LocalSubprocessRuntime)
+      await ctx.plugin(ToolUitest)
+    },
+    note: 'The installed deveco-cli skill owns command guidance; the tool accepts only its fixed base command families as plain argv.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-web',

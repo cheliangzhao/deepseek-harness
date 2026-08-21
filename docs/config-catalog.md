@@ -2583,6 +2583,30 @@ export interface Config {
 
 Source: [`packages/goal/tool-goal/src/index.ts:26`](../packages/goal/tool-goal/src/index.ts)
 
+<a id="deepseek-aidsh-tool-harmonyos-uitest"></a>
+
+## `@deepseek-ai/dsh-tool-harmonyos-uitest`
+
+Requires: `tools` · `subprocess` · `systemPrompt`
+
+```ts config-catalog
+/** Execution limits and optional executable override. */
+export interface Config {
+  /** Enables the tool and its prompt guidance. */
+  enabled?: boolean
+  /** Explicit DevEco CLI executable; omitted resolves `devecocli` from PATH. */
+  devecoCliExecutable?: string
+  /** Maximum wall-clock time for one CLI process. */
+  timeoutMs?: number
+  /** Termination grace passed to the subprocess service. */
+  graceMs?: number
+  /** Retained diagnostic bytes for each process stream. */
+  maxOutputBytes?: number
+}
+```
+
+Source: [`packages/harmony/tool-harmonyos-uitest/src/index.ts:21`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
+
 <a id="deepseek-aidsh-tool-jobs"></a>
 
 ## `@deepseek-ai/dsh-tool-jobs`
