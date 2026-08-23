@@ -600,7 +600,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(LocalSubprocessRuntime)
       await ctx.plugin(ToolUitest)
     },
-    note: 'The installed deveco-cli skill owns command guidance; the tool accepts only its fixed base command families as plain argv.',
+    note: 'The installed deveco-cli skill owns command guidance; the tool accepts only the skill-documented top-level command families as plain argv.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-web',

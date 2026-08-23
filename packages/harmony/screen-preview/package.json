@@ -1,0 +1,15 @@
+{
+  "name": "@deepseek-ai/dsh-harmony-screen-preview",
+  "description": "HTTP screenshot provider for the automation-preset HarmonyOS device preview",
+  "version": "0.1.0-rc.8",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": { ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" }, "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" }, "./src/*": "./src/*", "./package.json": "./package.json" },
+  "scripts": { "bundle": "tsdown", "watch": "tsdown --watch" },
+  "dependencies": { "@deepseek-ai/schemastery": "workspace:^" },
+  "peerDependencies": { "@deepseek-ai/cordis": "workspace:^", "@deepseek-ai/dsh-host-webserver": "workspace:^", "@deepseek-ai/dsh-invariants": "workspace:^", "@deepseek-ai/dsh-subprocess": "workspace:^" },
+  "devDependencies": { "@deepseek-ai/cordis": "workspace:^", "@deepseek-ai/dsh-host-webserver": "workspace:^", "@deepseek-ai/dsh-invariants": "workspace:^", "@deepseek-ai/dsh-subprocess": "workspace:^" },
+  "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
+  "license": "MIT"
+}

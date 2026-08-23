@@ -17,6 +17,7 @@ export type {} from './conversation-nodes/turn-tail.ts'
 export { apply, inject } from './apply.ts'
 export { ConversationController } from './service.ts'
 export type { IConversation } from './service.ts'
+export type { DetailsPanelEntry, IDetailsPanels } from './details-panel-registry.ts'
 export type { DraftAttachmentId } from './input/contract.ts'
 
 export type {
@@ -42,5 +43,7 @@ declare module '@deepseek-ai/cordis' {
   interface Context {
     /** The outward face only; the concrete service stays inside this plugin. */
     conversation: import('./service.ts').IConversation
+    /** Optional modes for the shared details column. */
+    detailsPanels: import('./details-panel-registry.ts').IDetailsPanels
   }
 }

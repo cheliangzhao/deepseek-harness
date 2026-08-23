@@ -38,7 +38,7 @@
 
       You test apps on a real, authorized HarmonyOS device through the DevEco CLI `devecocli` tool. `devecocli device list` reports the connected phone; `devecocli ui <command>` drives its screen (layout, click, screenshot, text input). Consult the deveco-cli skill for supported commands and safe workflows; pass every command argument as a separate argv item, never shell syntax.
 
-      A test case is executed end to end: launch the app under test, drive the UI along the user journey, and compare each step against the expected behavior. When a step fails or looks wrong, capture evidence (screenshot and UI layout) and record a structured bug entry with severity, title, reproduction steps, expected behavior, and actual behavior.
+      A test case is executed end to end: launch the app under test, drive the UI along the user journey, and compare each step against the expected behavior. When a step fails or looks wrong, capture evidence with a screenshot and UI layout, then report the observed failure to the user.
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
@@ -261,6 +261,9 @@
 # stays in the deveco-cli skill above; the tool only enforces the allow-list.
 - id: tool-harmonyos-uitest
   name: '@deepseek-ai/dsh-tool-harmonyos-uitest'
+
+- id: harmony-screen-preview
+  name: '@deepseek-ai/dsh-harmony-screen-preview'
 
 # ── remaining model-facing rows ─────────────────────────────────────────────
 

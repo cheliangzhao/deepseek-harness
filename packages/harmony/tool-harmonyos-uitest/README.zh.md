@@ -6,7 +6,7 @@
 
 ## 工具
 
-`devecocli` 接受一个 argv 向量，用于 `device`、`ui`、`log`、`build`、`run`、`check` 和 `docs` 命令族。它通过 `ctx.subprocess` 运行该向量，模型值不会进入 shell。
+`devecocli` 接受一个 argv 向量，用于 Skill 中记录的全部顶层命令族：`build`、`run`、`update`、`device`、`emulator`、`skills`、`log`、`create`、`init`、`serve`、`docs`、`ui`、`auth`、`check` 和 `signature`。它通过 `ctx.subprocess` 运行该向量，模型值不会进入 shell。
 
 ## 配置
 
@@ -22,7 +22,7 @@
 
 #### Token effect
 
-- 每次调用返回 argv、stdout、stderr、退出状态和截断事实。
+- 每次调用返回 argv、stdout、stderr、退出状态和截断事实。面向模型的文本会标记两个输出流，并说明只保留了尾部时的截断状态。
 
 #### KV Cache 影响
 
@@ -30,5 +30,4 @@
 
 ## 已知限制与暂缓事项
 
-- 基础工具不包含 `update`、`auth`、模拟器生命周期和签名命令。
 - 工具不推断参数、选择器、路径或工程配置。

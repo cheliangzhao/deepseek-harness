@@ -10,7 +10,7 @@ Harness agents need to operate an authorized HarmonyOS device without embedding 
 
 ## Decision
 
-`packages/harmony/tool-harmonyos-uitest` exports one model-visible `devecocli` tool. It passes a checked plain argv vector to the host `devecocli` executable through `ctx.subprocess`. The base allow-list contains `device`, `ui`, `log`, `build`, `run`, `check`, and `docs`; update, authentication, emulator lifecycle, signature, and arbitrary shell syntax remain unavailable.
+`packages/harmony/tool-harmonyos-uitest` exports one model-visible `devecocli` tool. It passes a checked plain argv vector to the host `devecocli` executable through `ctx.subprocess`, using the calling agent's workspace as the subprocess directory. The allow-list contains the 15 top-level command families documented by the bundled `deveco-cli` skill; arbitrary shell syntax remains unavailable. Each call has bounded timeout, termination grace, and per-stream retained output, and the model-facing text labels both streams and any truncated tail.
 
 The installed `deveco-cli` skill owns command knowledge and safe workflows. Skill updates improve agent guidance without changing the tool's executable authority.
 
@@ -25,4 +25,4 @@ The installed `deveco-cli` skill owns command knowledge and safe workflows. Skil
 
 ## Consequences
 
-The example overlay contributes one tool only. Keyless tests pin accepted and rejected command families plus a command transcript; the shipped-preset e2e pins the automation agent's exact tool catalog and its scoped skill view. Real-device verification on a `nova 14 Pro` confirms `devecocli device list`, `devecocli ui layout`, `click`, and `screenshot` operate on an authorized phone.
+The example overlay contributes one tool only. Keyless tests exercise the real Loader path with a deterministic executable and pin the accepted command families, workspace directory, stream rendering, truncation markers, and failure classification. The shipped-preset e2e pins the automation agent's exact tool catalog and its scoped skill view. The automation Web client opens its screenshot preview in the shared details column; an explicitly opened details column retains its minimum width on constrained viewports. Real-device verification on a `nova 14 Pro` confirms `devecocli device list`, `devecocli ui layout`, `click`, and `screenshot` operate on an authorized phone.

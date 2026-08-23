@@ -6,7 +6,7 @@ Model-facing, allow-listed HarmonyOS automation through `devecocli`.
 
 ## Tools
 
-`devecocli` accepts one argv vector for the `device`, `ui`, `log`, `build`, `run`, `check`, and `docs` command families. It runs that vector through `ctx.subprocess`; no model value enters a shell.
+`devecocli` accepts one argv vector for every top-level command family documented by the bundled Skill: `build`, `run`, `update`, `device`, `emulator`, `skills`, `log`, `create`, `init`, `serve`, `docs`, `ui`, `auth`, `check`, and `signature`. It runs that vector through `ctx.subprocess`; no model value enters a shell.
 
 ## Configuration
 
@@ -22,7 +22,7 @@ Model-facing, allow-listed HarmonyOS automation through `devecocli`.
 
 #### Token effect
 
-- Each call returns argv, stdout, stderr, exit status, and truncation facts.
+- Each call returns argv, stdout, stderr, exit status, and truncation facts. The model-facing text labels both streams and states when only a retained tail is available.
 
 #### KV Cache effect
 
@@ -30,5 +30,4 @@ The stable prompt section and tool schema are reusable across turns. Tool result
 
 ## Known Limitations and Deferred Work
 
-- `update`, `auth`, emulator lifecycle, and signature commands are excluded from the base tool.
 - The tool does not infer arguments, selectors, paths, or project configuration.

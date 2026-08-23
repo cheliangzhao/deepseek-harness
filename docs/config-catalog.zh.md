@@ -2608,7 +2608,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/harmony/tool-harmonyos-uitest/src/index.ts:21`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
+来源：[`packages/harmony/tool-harmonyos-uitest/src/index.ts:30`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
 
 <a id="deepseek-aidsh-tool-jobs"></a>
 

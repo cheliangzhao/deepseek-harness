@@ -10,7 +10,7 @@ Harness agent 需要操作已授权的 HarmonyOS 设备，同时不应在运行�
 
 ## Decision
 
-`packages/harmony/tool-harmonyos-uitest` 导出一个模型可见的 `devecocli` 工具。它通过 `ctx.subprocess` 将经过检查的普通 argv 向量传给主机上的 `devecocli` 可执行文件。基础 allow-list 包含 `device`、`ui`、`log`、`build`、`run`、`check` 和 `docs`；更新、认证、模拟器生命周期、签名和任意 shell 语法不可用。
+`packages/harmony/tool-harmonyos-uitest` 导出一个模型可见的 `devecocli` 工具。它通过 `ctx.subprocess` 将经过检查的普通 argv 向量传给主机上的 `devecocli` 可执行文件，并使用调用 agent 的工作区作为子进程目录。allow-list 包含随附 `deveco-cli` skill 记录的 15 个顶层命令族；任意 shell 语法不可用。每次调用都有有界超时、终止宽限期和逐流保留输出，面向模型的文本会标记两个输出流以及被截断的尾部。
 
 已安装的 `deveco-cli` skill 拥有命令知识和安全工作流。skill 更新可改进 agent 指导，但不会改变工具的可执行权限。
 
@@ -25,4 +25,4 @@ Harness agent 需要操作已授权的 HarmonyOS 设备，同时不应在运行�
 
 ## Consequences
 
-示例 overlay 只贡献一个工具。无密钥测试钉住允许和拒绝的命令族以及命令 transcript；shipped-preset e2e 钉住 automation agent 的精确工具目录及其 scoped skill 视图。在 `nova 14 Pro` 上的真机验证确认已授权手机可运行 `devecocli device list`、`devecocli ui layout`、`click` 和 `screenshot`。
+示例 overlay 只贡献一个工具。无密钥测试通过确定性 executable 运行真实 Loader 路径，并钉住允许的命令族、工作区目录、流渲染、截断标记和失败分类。shipped-preset e2e 钉住 automation agent 的精确工具目录及其 scoped skill 视图。automation Web 客户端在共享详情栏中打开截图预览；显式打开的详情栏在受限视口下保持最小宽度。在 `nova 14 Pro` 上的真机验证确认已授权手机可运行 `devecocli device list`、`devecocli ui layout`、`click` 和 `screenshot`。

@@ -93,7 +93,8 @@ export function AppFrame({
   const panels = useStore(s => s)
   const detailsSession = useSessions((s) => {
     const current = s.current
-    return current !== undefined && s.byId[current]?.blank === false ? current : undefined
+    const summary = current === undefined ? undefined : s.byId[current]
+    return current !== undefined && (summary?.blank !== true || summary?.agentPreset === 'automation') ? current : undefined
   })
   const frameRef = useRef<HTMLDivElement | null>(null)
   const [viewport, setViewport] = useState(() => window.innerWidth)

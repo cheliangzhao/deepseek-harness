@@ -1,0 +1,10 @@
+.iconButton { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; }
+.iconButton:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.iconButton:focus-visible { outline: 2px solid var(--dsw-alias-focus-ring, currentColor); outline-offset: 2px; }
+.viewport { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--dsw-alias-bg-base); }
+.preview { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--dsw-alias-bg-base); }
+.preview[data-hidden] { visibility: hidden; }
+.unavailable { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; padding: 28px; box-sizing: border-box; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); text-align: center; }
+.deviceIcon { width: 40px; height: 40px; margin-bottom: 6px; color: var(--dsw-alias-label-tertiary); }
+.unavailable strong { font-size: 14px; font-weight: 500; line-height: 20px; }
+.unavailable span { max-width: 240px; color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; }

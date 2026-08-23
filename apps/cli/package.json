@@ -65,6 +65,7 @@
     "@deepseek-ai/dsh-tool-fs-search": "workspace:^",
     "@deepseek-ai/dsh-tool-goal": "workspace:^",
     "@deepseek-ai/dsh-tool-harmonyos-uitest": "workspace:^",
+    "@deepseek-ai/dsh-harmony-screen-preview": "workspace:^",
     "@deepseek-ai/dsh-tool-pwsh": "workspace:^",
     "@deepseek-ai/dsh-tool-ralph": "workspace:^",
     "@deepseek-ai/dsh-schedule": "workspace:^",
