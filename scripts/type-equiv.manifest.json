@@ -1751,6 +1751,26 @@
       "source": "packages/client/modules/src/client/manifest.ts"
     },
     {
+      "doc": "docs/subsystems/device-automation.md",
+      "symbol": "DeviceAutomationProviderName",
+      "source": "packages/device/device-automation-runtime/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-automation.md",
+      "symbol": "RelativeTapPosition",
+      "source": "packages/device/device-automation-runtime/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-automation.md",
+      "symbol": "DeviceScreenshot",
+      "source": "packages/device/device-automation-runtime/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-automation.md",
+      "symbol": "DeviceAutomationProvider",
+      "source": "packages/device/device-automation-runtime/src/index.ts"
+    },
+    {
       "doc": "docs/subsystems/session-telemetry.md",
       "symbol": "SessionTelemetrySharingStatus",
       "source": "packages/session/session-telemetry/src/index.ts"

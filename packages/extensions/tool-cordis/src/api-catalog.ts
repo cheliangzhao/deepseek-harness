@@ -672,6 +672,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'deviceAutomation',
+    summary: 'Registry and browser-facing consumer over platform device providers.',
+    description: 'Registry and browser-facing consumer over platform device providers.',
+    methods: [
+      {
+        signature: 'registerProvider(provider: DeviceAutomationProvider): () => void',
+        description: 'Register one uniquely named platform provider for this effect scope.',
+        parameters: [{ name: 'provider', description: 'trusted same-process platform implementation.' }],
+        returns: 'disposer removing exactly this provider.',
+      },
+      {
+        signature: 'listProviders(): readonly { name: DeviceAutomationProviderName; platform: string }[]',
+        description: 'List the currently registered platform providers.',
+        parameters: [],
+        returns: 'provider descriptors in registration order.',
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',
@@ -3225,6 +3244,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type CredentialRef = Branded<\'CredentialRef\'>;',
   },
   {
+    name: 'DeviceAutomationProvider',
+    declaration: 'export interface DeviceAutomationProvider {\n    readonly name: string;\n    readonly platform: string;\n    screenshot(signal: AbortSignal): Promise<DeviceScreenshot>;\n    tap(position: RelativeTapPosition, signal: AbortSignal): Promise<void>;\n}',
+  },
+  {
+    name: 'DeviceAutomationProviderName',
+    declaration: 'export type DeviceAutomationProviderName = Branded<\'DeviceAutomationProviderName\'>;',
+  },
+  {
+    name: 'DeviceScreenshot',
+    declaration: 'export interface DeviceScreenshot {\n    readonly mediaType: \'image/png\';\n    readonly bytes: Uint8Array;\n    readonly width: number;\n    readonly height: number;\n}',
+  },
+  {
     name: 'DiffCallView',
     declaration: 'export interface DiffCallView {\n    card: \'diff\';\n    title: string;\n    diffs: FileDiff[];\n    locations?: FileLocation[];\n}',
   },
@@ -3899,6 +3930,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RedactedSecret',
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
+  },
+  {
+    name: 'RelativeTapPosition',
+    declaration: 'export interface RelativeTapPosition {\n    readonly x: number;\n    readonly y: number;\n}',
   },
   {
     name: 'ReplayEnvelope',

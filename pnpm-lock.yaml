@@ -186,9 +186,6 @@ importers:
       '@deepseek-ai/dsh-goal-round-driver':
         specifier: workspace:^
         version: link:../../packages/goal/goal-round-driver
-      '@deepseek-ai/dsh-harmony-screen-preview':
-        specifier: workspace:^
-        version: link:../../packages/harmony/screen-preview
       '@deepseek-ai/dsh-headless':
         specifier: workspace:^
         version: link:../../packages/bundle/headless
@@ -1329,9 +1326,9 @@ importers:
       '@deepseek-ai/dsh-client-ui-deliverables':
         specifier: workspace:^
         version: link:../../client/ui-deliverables
-      '@deepseek-ai/dsh-client-ui-device-preview':
+      '@deepseek-ai/dsh-client-ui-device-automation':
         specifier: workspace:^
-        version: link:../../client/ui-device-preview
+        version: link:../../client/ui-device-automation
       '@deepseek-ai/dsh-client-ui-directory-picker-browse':
         specifier: workspace:^
         version: link:../../client/ui-directory-picker-browse
@@ -1422,6 +1419,12 @@ importers:
       '@deepseek-ai/dsh-cordis-host-runner':
         specifier: workspace:^
         version: link:../../extensions/cordis-host-runner
+      '@deepseek-ai/dsh-device-automation-harmonyos':
+        specifier: workspace:^
+        version: link:../../device/device-automation-harmonyos
+      '@deepseek-ai/dsh-device-automation-runtime':
+        specifier: workspace:^
+        version: link:../../device/device-automation-runtime
       '@deepseek-ai/dsh-file-reference':
         specifier: workspace:^
         version: link:../../context/file-reference
@@ -2001,7 +2004,7 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1
 
-  packages/client/ui-device-preview:
+  packages/client/ui-device-automation:
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^
@@ -3914,6 +3917,72 @@ importers:
         specifier: workspace:^
         version: link:../../util/launch-environment
 
+  packages/device/device-automation:
+    dependencies:
+      '@deepseek-ai/dsh-client-ui-device-automation':
+        specifier: workspace:^
+        version: link:../../client/ui-device-automation
+      '@deepseek-ai/dsh-device-automation-harmonyos':
+        specifier: workspace:^
+        version: link:../device-automation-harmonyos
+      '@deepseek-ai/dsh-device-automation-runtime':
+        specifier: workspace:^
+        version: link:../device-automation-runtime
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+
+  packages/device/device-automation-harmonyos:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-device-automation-runtime':
+        specifier: workspace:^
+        version: link:../device-automation-runtime
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-subprocess':
+        specifier: workspace:^
+        version: link:../../subprocess/subprocess
+
+  packages/device/device-automation-runtime:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-brand':
+        specifier: workspace:^
+        version: link:../../util/brand
+      '@deepseek-ai/dsh-client-connection':
+        specifier: workspace:^
+        version: link:../../client/connection
+      '@deepseek-ai/dsh-fs':
+        specifier: workspace:^
+        version: link:../../fs/fs
+      '@deepseek-ai/dsh-host-apiproxy':
+        specifier: workspace:^
+        version: link:../../host/apiproxy
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+
   packages/e2b/e2b:
     dependencies:
       '@deepseek-ai/schemastery':
@@ -4898,28 +4967,6 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: workspace:^
         version: link:../../core/tools
-
-  packages/harmony/screen-preview:
-    dependencies:
-      '@deepseek-ai/schemastery':
-        specifier: link:../../../vendor/schemastery
-        version: link:../../../vendor/schemastery
-    devDependencies:
-      '@deepseek-ai/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-client-connection':
-        specifier: workspace:^
-        version: link:../../client/connection
-      '@deepseek-ai/dsh-host-webserver':
-        specifier: workspace:^
-        version: link:../../host/webserver
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-      '@deepseek-ai/dsh-subprocess':
-        specifier: workspace:^
-        version: link:../../subprocess/subprocess
 
   packages/harmony/tool-harmonyos-uitest:
     dependencies:
@@ -9067,6 +9114,9 @@ importers:
       '@deepseek-ai/dsh-tool-goal':
         specifier: workspace:^
         version: link:../../packages/goal/tool-goal
+      '@deepseek-ai/dsh-tool-harmonyos-uitest':
+        specifier: workspace:^
+        version: link:../../packages/harmony/tool-harmonyos-uitest
       '@deepseek-ai/dsh-tool-jobs':
         specifier: workspace:^
         version: link:../../packages/jobs/tool-jobs

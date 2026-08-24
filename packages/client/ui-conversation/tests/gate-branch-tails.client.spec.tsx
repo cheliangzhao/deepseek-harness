@@ -16,6 +16,7 @@ import { createChatStore } from '../src/client/stores.ts'
 import { AssistantMarkdown, type AssistantMarkdownProps } from '../src/client/chat/AssistantMarkdown.tsx'
 import { StatsLine } from '../src/client/chat/StatsLine.tsx'
 import { DetailsPanel } from '../src/client/skeleton/DetailsPanel.tsx'
+import { DetailsPanelRegistry } from '../src/client/details-panel-registry.ts'
 import { zh } from '../src/client/locales.ts'
 import { chatSnapshotFixture } from './chat-snapshot-fixture.client.ts'
 
@@ -148,6 +149,43 @@ describe('render branch tails', () => {
     )
     expect(view.getByText('详情')).toBeTruthy()
     expect(view.getByText('该调用不在当前窗口内')).toBeTruthy()
+  })
+
+  it('DetailsPanel does not render an optional panel for an ineligible session', () => {
+    const panels = new DetailsPanelRegistry()
+    const renderPanel = vi.fn(() => <div>automation details</div>)
+    panels.register({ id: 'automation', render: renderPanel, visible: () => false })
+    panels.open('automation')
+    const snap = snapshotBase()
+    const chat = createChatStore().create()
+    const list = createSnapshotStore<SessionListState>(
+      { ids: [], byId: {}, current: undefined, phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined })
+    const workspaces = createSnapshotStore<WorkspaceListState>({
+      items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
+      baselinesReady: true, recentWorkspaceId: undefined,
+    })
+    const view = render(
+      <DetailsPanel
+        SessionProvider={SessionProviderStub}
+        renderSlot={renderToolDetailsProbe()}
+        sessionId={SID}
+        useSession={bindSnapshotSelector({ getSnapshot: () => snap, subscribe: () => () => {} })}
+        useSessions={bindSnapshotSelector(list)}
+        useWorkspaces={bindSnapshotSelector(workspaces)}
+        useProjection={(() => undefined)}
+        useInput={(() => { throw new Error('unused') })}
+        inputActions={{
+          setDraft: () => {}, addImages: () => true, removeImage: () => {}, pruneImages: () => {}, submit: () => {},
+        }}
+        useStore={bindSnapshotSelector(chat)}
+        actions={chat.actions}
+        closeDetails={vi.fn()}
+        t={t}
+        detailsPanels={panels}
+      />,
+    )
+    expect(renderPanel).not.toHaveBeenCalled()
+    expect(view.queryByText('automation details')).toBeNull()
   })
 
   it('DetailsPanel resolves a nested run_code leaf to its full logged args and output', () => {

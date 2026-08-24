@@ -514,6 +514,15 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names.',
   },
   {
+    key: 'deviceAutomation',
+    pkg: 'device-automation-runtime',
+    title: 'Cross-platform device automation registry',
+    mode: 'seam',
+    implementations: ['device-automation-harmonyos'],
+    consumers: ['ui-device-automation'],
+    note: 'Platform providers own device commands; the runtime owns trusted browser RPC and workspace file access; the browser consumer owns the Files and Device surfaces.',
+  },
+  {
     key: 'spillStore',
     pkg: 'spill',
     title: 'Spill storage seam',

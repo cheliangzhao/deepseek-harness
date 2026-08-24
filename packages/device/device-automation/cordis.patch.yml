@@ -1,0 +1,16 @@
+# Installable automation workspace: runtime, HarmonyOS provider, and the
+# browser's deliberately small Files + Device surface.
+- insert:
+    - id: device-automation-runtime
+      name: '@deepseek-ai/dsh-device-automation-runtime'
+      config:
+        defaultProvider: harmonyos
+        refreshMs: 100
+        maxFileBytes: 1048576
+        maxDirectoryEntries: 1000
+
+    - id: device-automation-harmonyos
+      name: '@deepseek-ai/dsh-device-automation-harmonyos'
+
+    - id: ui-device-automation
+      name: '@deepseek-ai/dsh-client-ui-device-automation'

@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-08-21-harmony-device-capability.md
-2026-08-21-harmony-device-capability.md: abbdeb26dae1ea5954556b577b7d8d7579462f5b
-2026-08-21-harmony-device-capability.zh.md: ed90a2ed0dfe77b45268c6babc14e5bf9bd3f82c
+2026-08-21-harmony-device-capability.md: 09c7f360296370e7d7dc99738a719e98138ee2f4
+2026-08-21-harmony-device-capability.zh.md: a9f69e977806fd44809d07abaf74c5b404169e74

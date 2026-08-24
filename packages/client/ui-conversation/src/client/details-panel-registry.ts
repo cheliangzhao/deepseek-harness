@@ -6,8 +6,8 @@ import type { SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 export interface DetailsPanelEntry {
   /** Stable mode identity. */
   readonly id: string
-  /** Panel body; it owns its own browser state and data fetching. */
-  readonly render: () => ReactNode
+  /** Panel body for the currently addressed session. */
+  readonly render: (sessionId: SessionId) => ReactNode
   /** Whether the mode is available for the addressed session. */
   readonly visible?: (sessionId: SessionId) => boolean
 }

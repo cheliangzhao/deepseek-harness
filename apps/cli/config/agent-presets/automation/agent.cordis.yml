@@ -262,9 +262,6 @@
 - id: tool-harmonyos-uitest
   name: '@deepseek-ai/dsh-tool-harmonyos-uitest'
 
-- id: harmony-screen-preview
-  name: '@deepseek-ai/dsh-harmony-screen-preview'
-
 # ── remaining model-facing rows ─────────────────────────────────────────────
 
 - id: tool-ask-user

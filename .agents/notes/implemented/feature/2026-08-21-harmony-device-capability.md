@@ -20,9 +20,7 @@ The installed `deveco-cli` skill owns command knowledge and safe workflows. Skil
 
 ## Browser device preview
 
-`packages/harmony/screen-preview` serves fresh validated screenshots over `GET /api/device-preview/screenshot` and registers taps on the dedicated `/device-preview` Connection RPC channel. The Connection carrier applies its Host, Origin, Fetch Metadata, and JSON-media-type checks before the provider receives a tap. The provider maps relative image coordinates to the retained PNG's native pixels and serializes screenshot and tap commands through one lifecycle-owned queue. Disposal removes both registrations, aborts the active command, waits for it to stop, and prevents queued commands from starting before deleting the temporary screenshot directory.
-
-`packages/client/ui-device-preview` renders the image in the shared details column for automation sessions, waits for each screenshot request to settle before scheduling the next one, ignores clicks during loading or in letterboxing, and submits accepted relative coordinates through the Connection RPC client.
+The initial HarmonyOS-specific preview was replaced by the platform-neutral Provider seam and Files + Device workspace recorded in the [device automation Provider Agent Note](../architecture/2026-08-24-device-automation-provider-seam.md). This note continues to own the model-visible DevEco CLI tool and automation preset decisions.
 
 ## Alternatives considered
 
@@ -31,4 +29,4 @@ The installed `deveco-cli` skill owns command knowledge and safe workflows. Skil
 
 ## Consequences
 
-The example overlay contributes one tool only. Keyless tests exercise the real Loader path with a deterministic executable and pin the accepted command families, workspace directory, stream rendering, truncation markers, and failure classification. The shipped-preset e2e pins the automation agent's exact tool catalog and its scoped skill view. The assembled Web snapshot boots the shipped Loader and browser bundles, clicks the rendered screenshot, and pins the `devecocli ui click` argv observed at the subprocess boundary. Unit coverage pins the tap trust fence, route rollback, queue cancellation, and quiescent disposal. An explicitly opened details column retains its minimum width on constrained viewports. Real-device verification on a `nova 14 Pro` confirms `devecocli device list`, `devecocli ui layout`, `click`, and `screenshot` operate on an authorized phone.
+The example overlay contributes one tool only. Keyless tests exercise the real Loader path with a deterministic executable and pin the accepted command families, workspace directory, stream rendering, truncation markers, and failure classification. The shipped-preset e2e pins the automation agent's exact tool catalog and its scoped skill view. Real-device verification on a `nova 14 Pro` confirms `devecocli device list`, `devecocli ui layout`, `click`, and `screenshot` operate on an authorized phone.

@@ -7,4 +7,3 @@ HarmonyOS automation for the DeepSeek Harness through one allow-listed `devecocl
 | Package | Role |
 |---|---|
 | [`tool-harmonyos-uitest/`](tool-harmonyos-uitest/README.md) | model-facing `devecocli` tool (registers on `ctx.tools`) |
-| [`screen-preview/`](screen-preview/README.md) | automation-preset HTTP screenshot provider and browser panel loader |
