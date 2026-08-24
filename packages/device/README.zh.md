@@ -6,7 +6,7 @@ DeepSeek Harness 的跨平台设备自动化能力。该家族将可安装 Bundl
 
 | 包 | 角色 |
 |---|---|
-| [`device-automation/`](device-automation/README.zh.md) | 可安装 Bundle（`@deepseek-ai/dsh-device-automation`） |
+| [`device-automation/`](device-automation/README.zh.md) | 可安装 Bundle（`@fadinglight/dsh-device-automation`） |
 | [`device-automation-runtime/`](device-automation-runtime/README.zh.md) | Service Definition 与 Host Consumer（`ctx.deviceAutomation`） |
 | [`device-automation-harmonyos/`](device-automation-harmonyos/README.zh.md) | 基于 DevEco CLI 的 HarmonyOS Provider |
 

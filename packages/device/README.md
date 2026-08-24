@@ -6,7 +6,7 @@ Cross-platform device automation capability for DeepSeek Harness. The family sep
 
 | Package | Role |
 |---|---|
-| [`device-automation/`](device-automation/README.md) | installable Bundle (`@deepseek-ai/dsh-device-automation`) |
+| [`device-automation/`](device-automation/README.md) | installable Bundle (`@fadinglight/dsh-device-automation`) |
 | [`device-automation-runtime/`](device-automation-runtime/README.md) | Service Definition and Host Consumer (`ctx.deviceAutomation`) |
 | [`device-automation-harmonyos/`](device-automation-harmonyos/README.md) | HarmonyOS Provider over DevEco CLI |
 

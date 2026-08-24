@@ -115,6 +115,9 @@ export abstract class ReleaseFamily {
   /** Git tag prefix this family publishes from. */
   abstract readonly tagPrefix: string
 
+  /** Package scopes selected by the directory glob but published by an external repository. */
+  readonly externalPackagePrefixes: readonly string[] = []
+
   /**
    * Assert that built artifacts match this release family's required profile.
    * Families without environment-selected artifacts accept every build tree.
@@ -139,6 +142,7 @@ export abstract class ReleaseFamily {
       const name = requireString(manifest, 'name', normalized)
       const version = requireString(manifest, 'version', normalized)
       if (name === WORKSPACE_ROOT_PACKAGE) throw new Error(`${normalized} selected the workspace root`)
+      if (this.externalPackagePrefixes.some(prefix => name.startsWith(prefix))) continue
       if (!name.startsWith('@deepseek-ai/')) throw new Error(`${normalized} must name an @deepseek-ai package`)
       if (seen.has(name)) throw new Error(`${name} appears twice in release family ${this.id}`)
       seen.add(name)
@@ -321,6 +325,7 @@ class DshFamily extends ReleaseFamily {
   readonly id = 'dsh'
   readonly patterns = ['packages/!(experimental)/*/package.json', 'apps/*/package.json'] as const
   readonly tagPrefix = 'dsh-v'
+  override readonly externalPackagePrefixes = ['@fadinglight/'] as const
 
   /** Require current artifacts from a complete official client build. */
   override verifyBuildArtifacts(root: string): void {

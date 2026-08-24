@@ -12,10 +12,10 @@ The first browser device preview directly combined HarmonyOS DevEco CLI commands
 
 Device automation is a four-package composition:
 
-- `@deepseek-ai/dsh-device-automation` is the installable Bundle and publishing unit.
-- `@deepseek-ai/dsh-device-automation-runtime` owns `ctx.deviceAutomation`, named Provider selection, trusted browser RPC, and read-only workspace access through `ctx.fs`.
-- `@deepseek-ai/dsh-device-automation-harmonyos` registers the `harmonyos` Provider and is the only package that knows DevEco CLI argv.
-- `@deepseek-ai/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device.
+- `@cheliangzhao/dsh-device-automation` is the installable Bundle and publishing unit. The `@cheliangzhao/*` packages are excluded from the repository's `@deepseek-ai/*` release family and publish independently.
+- `@cheliangzhao/dsh-device-automation-runtime` owns `ctx.deviceAutomation`, named Provider selection, trusted browser RPC, and read-only workspace access through `ctx.fs`.
+- `@cheliangzhao/dsh-device-automation-harmonyos` registers the `harmonyos` Provider and is the only package that knows DevEco CLI argv.
+- `@cheliangzhao/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device.
 
 The runtime selects a request-named Provider, then the configured default, then a sole registered Provider. Multiple Providers without an explicit choice fail loud. The current Provider interface includes only screenshot and relative tap because those are the operations with current Consumers; gestures, text entry, rotation, and device selection are added only with a concrete cross-platform requirement.
 
@@ -36,6 +36,6 @@ The Files + Device workspace follows Better Sidebar's compact tab-workspace idea
 
 ## Consequences
 
-Android and iOS can register Providers without changing the browser RPC or React components. The installable Bundle can initially publish one HarmonyOS composition while the runtime remains platform-neutral. The Web profile mounts the same rows directly, and the automation preset retains only model-visible tooling and skill guidance.
+Android and iOS can register Providers without changing the browser RPC or React components. The installable Bundle can initially publish one HarmonyOS composition while the runtime remains platform-neutral. The Web profile loads that aggregate Bundle instead of duplicating its internal rows, and the automation preset retains only model-visible tooling and skill guidance.
 
-Unit tests cover Provider selection, malformed wire input, workspace containment, screenshot validation, relative tap mapping, serial execution, and awaited disposal. The assembled keyless Web scenario boots the shipped Loader and browser bundles, opens a real workspace file, clicks the rendered device frame, observes the exact `devecocli ui click` argv, and verifies a later frame replaces it.
+Unit tests cover Provider selection, malformed wire input, workspace containment, screenshot validation, relative tap mapping, serial execution, and awaited disposal. The assembled keyless Web scenario boots the shipped Loader and browser bundles, opens a real workspace file, clicks the rendered device frame, observes the exact `devecocli ui click` argv, and verifies a later frame replaces it. A publish-path rehearsal packs the aggregate and its internal packages, installs the aggregate tarball into a fresh DSH profile, and dumps the composed tree through the built CLI.

@@ -1,4 +1,4 @@
-/** Package invariant companion. @module @deepseek-ai/dsh-device-automation-runtime/invariant */
+/** Package invariant companion. @module @fadinglight/dsh-device-automation-runtime/invariant */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
@@ -11,4 +11,4 @@ const install: InvariantInstaller = () => {
 
 /** Register device-automation package ownership. */
 export const apply = (ctx: Context): Promise<() => void> =>
-  Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-device-automation-runtime', install))
+  Promise.resolve(ctx.invariants.register('@fadinglight/dsh-device-automation-runtime', install))

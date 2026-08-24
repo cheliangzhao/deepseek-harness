@@ -55,6 +55,10 @@ const BUNDLE_LAYERS = [
     manifest: join(REPO_ROOT, 'packages/bundle/web-app/package.json'),
     patch: join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml'),
   },
+  {
+    manifest: join(REPO_ROOT, 'packages/device/device-automation/package.json'),
+    patch: join(REPO_ROOT, 'packages/device/device-automation/cordis.patch.yml'),
+  },
 ] as const
 const bundleResolvers = BUNDLE_LAYERS.map(layer => createRequire(layer.manifest))
 const webBundleResolver = bundleResolvers[1]

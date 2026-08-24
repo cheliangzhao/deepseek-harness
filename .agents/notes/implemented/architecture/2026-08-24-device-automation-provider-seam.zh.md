@@ -12,10 +12,10 @@ Status: implemented
 
 设备自动化由四个包组合：
 
-- `@deepseek-ai/dsh-device-automation` 是可安装 Bundle 与发布单元。
-- `@deepseek-ai/dsh-device-automation-runtime` 拥有 `ctx.deviceAutomation`、具名 Provider 选择、受信浏览器 RPC，以及通过 `ctx.fs` 实现的只读工作区访问。
-- `@deepseek-ai/dsh-device-automation-harmonyos` 注册 `harmonyos` Provider，并是唯一理解 DevEco CLI argv 的包。
-- `@deepseek-ai/dsh-client-ui-device-automation` 是浏览器 Consumer，仅暴露“文件”与“设备”。
+- `@cheliangzhao/dsh-device-automation` 是可安装 Bundle 与发布单元。`@cheliangzhao/*` 包不属于仓库的 `@deepseek-ai/*` release family，并独立发布。
+- `@cheliangzhao/dsh-device-automation-runtime` 拥有 `ctx.deviceAutomation`、具名 Provider 选择、受信浏览器 RPC，以及通过 `ctx.fs` 实现的只读工作区访问。
+- `@cheliangzhao/dsh-device-automation-harmonyos` 注册 `harmonyos` Provider，并是唯一理解 DevEco CLI argv 的包。
+- `@cheliangzhao/dsh-client-ui-device-automation` 是浏览器 Consumer，仅暴露“文件”与“设备”。
 
 运行时依次选择请求指定的 Provider、已配置的默认 Provider，以及唯一已注册 Provider。存在多个 Provider 但没有明确选择时会明确失败。当前 Provider 接口仅包含截图与相对坐标点击，因为只有它们拥有当前 Consumer；手势、文本输入、旋转与设备选择只会在出现具体跨平台需求时添加。
 
@@ -36,6 +36,6 @@ HarmonyOS Provider 通过一个生命周期拥有的操作尾部串行执行截�
 
 ## 结果
 
-Android 和 iOS 可注册 Provider，无需改变浏览器 RPC 或 React 组件。可安装 Bundle 可以首先发布一个 HarmonyOS 组合，同时保持运行时的平台无关性。Web profile 直接挂载同样的行，automation preset 仅保留模型可见工具与 skill 指导。
+Android 和 iOS 可注册 Provider，无需改变浏览器 RPC 或 React 组件。可安装 Bundle 可以首先发布一个 HarmonyOS 组合，同时保持运行时的平台无关性。Web profile 加载该聚合 Bundle，而不是重复其内部行；automation preset 仅保留模型可见工具与 skill 指导。
 
-单元测试覆盖 Provider 选择、格式错误的 wire 输入、工作区包含关系、截图校验、相对点击映射、串行执行与可等待销毁。组装的无密钥 Web 场景启动随附 Loader 与浏览器 bundle，打开真实工作区文件，点击已渲染设备帧，观察精确的 `devecocli ui click` argv，并验证后续帧替换它。
+单元测试覆盖 Provider 选择、格式错误的 wire 输入、工作区包含关系、截图校验、相对点击映射、串行执行与可等待销毁。组装的无密钥 Web 场景启动随附 Loader 与浏览器 bundle，打开真实工作区文件，点击已渲染设备帧，观察精确的 `devecocli ui click` argv，并验证后续帧替换它。发布路径演练会打包聚合包及其内部包，将聚合包 tarball 安装到全新 DSH profile，并通过已构建 CLI 输出组合树。

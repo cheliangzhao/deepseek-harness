@@ -7,4 +7,4 @@ const install: InvariantInstaller = () => {
   // No runtime invariant: effect-scoped provider registration owns the only mutable relationship.
 }
 /** Register package ownership. */
-export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-device-automation-harmonyos', install))
+export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@fadinglight/dsh-device-automation-harmonyos', install))

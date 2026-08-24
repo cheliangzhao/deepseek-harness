@@ -306,6 +306,9 @@ importers:
       '@deepseek-ai/dsh-workflow-worker-thread':
         specifier: workspace:^
         version: link:../../packages/workflow/workflow-worker-thread
+      '@fadinglight/dsh-device-automation':
+        specifier: workspace:^
+        version: link:../../packages/device/device-automation
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -1326,9 +1329,6 @@ importers:
       '@deepseek-ai/dsh-client-ui-deliverables':
         specifier: workspace:^
         version: link:../../client/ui-deliverables
-      '@deepseek-ai/dsh-client-ui-device-automation':
-        specifier: workspace:^
-        version: link:../../client/ui-device-automation
       '@deepseek-ai/dsh-client-ui-directory-picker-browse':
         specifier: workspace:^
         version: link:../../client/ui-directory-picker-browse
@@ -1419,12 +1419,6 @@ importers:
       '@deepseek-ai/dsh-cordis-host-runner':
         specifier: workspace:^
         version: link:../../extensions/cordis-host-runner
-      '@deepseek-ai/dsh-device-automation-harmonyos':
-        specifier: workspace:^
-        version: link:../../device/device-automation-harmonyos
-      '@deepseek-ai/dsh-device-automation-runtime':
-        specifier: workspace:^
-        version: link:../../device/device-automation-runtime
       '@deepseek-ai/dsh-file-reference':
         specifier: workspace:^
         version: link:../../context/file-reference
@@ -3919,13 +3913,13 @@ importers:
 
   packages/device/device-automation:
     dependencies:
-      '@deepseek-ai/dsh-client-ui-device-automation':
+      '@fadinglight/dsh-client-ui-device-automation':
         specifier: workspace:^
         version: link:../../client/ui-device-automation
-      '@deepseek-ai/dsh-device-automation-harmonyos':
+      '@fadinglight/dsh-device-automation-harmonyos':
         specifier: workspace:^
         version: link:../device-automation-harmonyos
-      '@deepseek-ai/dsh-device-automation-runtime':
+      '@fadinglight/dsh-device-automation-runtime':
         specifier: workspace:^
         version: link:../device-automation-runtime
     devDependencies:
@@ -3945,15 +3939,15 @@ importers:
       '@deepseek-ai/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-device-automation-runtime':
-        specifier: workspace:^
-        version: link:../device-automation-runtime
       '@deepseek-ai/dsh-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
       '@deepseek-ai/dsh-subprocess':
         specifier: workspace:^
         version: link:../../subprocess/subprocess
+      '@fadinglight/dsh-device-automation-runtime':
+        specifier: workspace:^
+        version: link:../device-automation-runtime
 
   packages/device/device-automation-runtime:
     dependencies:

@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import { Context } from '@deepseek-ai/cordis'
-import type { DeviceAutomationProvider } from '@deepseek-ai/dsh-device-automation-runtime'
+import type { DeviceAutomationProvider } from '@fadinglight/dsh-device-automation-runtime'
 import type { SubprocessHandle, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as HarmonyProvider from '../src/index.ts'

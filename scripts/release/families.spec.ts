@@ -48,6 +48,13 @@ describe('release families', () => {
     expect(members.map(member => member.name)).not.toContain('@deepseek-ai/dsh-experimental-agent-team')
   })
 
+  it('leaves externally scoped automation packages to their own publication', () => {
+    const members = releaseFamily('dsh').members(resolve(import.meta.dirname, '../..'))
+
+    expect(members.map(member => member.name).filter(name => name.startsWith('@fadinglight/'))).toEqual([])
+    expect(members.map(member => member.name)).toContain('@deepseek-ai/dsh')
+  })
+
   it('bumps private dsh packages without adding release tags', () => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-release-version-'))
     roots.push(root)

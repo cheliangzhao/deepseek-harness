@@ -569,50 +569,6 @@ export interface Config {
 
 Source: [`packages/credentials/credentials-local/src/index.ts:64`](../packages/credentials/credentials-local/src/index.ts)
 
-<a id="deepseek-aidsh-device-automation-harmonyos"></a>
-
-## `@deepseek-ai/dsh-device-automation-harmonyos`
-
-Requires: `deviceAutomation` · `subprocess`
-
-```ts config-catalog
-/** HarmonyOS provider configuration. */
-export interface Config {
-  /** Optional absolute DevEco CLI executable path. */
-  devecoCliExecutable?: string
-  /** Optional serial of the authorized target device. */
-  deviceSerial?: string
-  /** Largest accepted screenshot in bytes. */
-  maxBytes?: number
-  /** Screenshot and click command deadline in milliseconds. */
-  timeoutMs?: number
-}
-```
-
-Source: [`packages/device/device-automation-harmonyos/src/index.ts:23`](../packages/device/device-automation-harmonyos/src/index.ts)
-
-<a id="deepseek-aidsh-device-automation-runtime"></a>
-
-## `@deepseek-ai/dsh-device-automation-runtime`
-
-Requires: `connection` · `fs` · `sessions`
-
-```ts config-catalog
-/** Host gateway limits and provider selection. */
-export interface Config {
-  /** Provider selected when the client does not name one. */
-  defaultProvider?: string
-  /** Delay advertised between completed screenshot requests. */
-  refreshMs?: number
-  /** Largest workspace file returned to the browser. */
-  maxFileBytes?: number
-  /** Largest directory listing returned to the browser. */
-  maxDirectoryEntries?: number
-}
-```
-
-Source: [`packages/device/device-automation-runtime/src/index.ts:76`](../packages/device/device-automation-runtime/src/index.ts)
-
 <a id="deepseek-aidsh-e2b"></a>
 
 ## `@deepseek-ai/dsh-e2b`
@@ -3253,6 +3209,50 @@ export interface Config {
 
 Source: [`packages/workflow/workflow-worker-thread/src/index.ts:32`](../packages/workflow/workflow-worker-thread/src/index.ts)
 
+<a id="fadinglightdsh-device-automation-harmonyos"></a>
+
+## `@fadinglight/dsh-device-automation-harmonyos`
+
+Requires: `deviceAutomation` · `subprocess`
+
+```ts config-catalog
+/** HarmonyOS provider configuration. */
+export interface Config {
+  /** Optional absolute DevEco CLI executable path. */
+  devecoCliExecutable?: string
+  /** Optional serial of the authorized target device. */
+  deviceSerial?: string
+  /** Largest accepted screenshot in bytes. */
+  maxBytes?: number
+  /** Screenshot and click command deadline in milliseconds. */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/device/device-automation-harmonyos/src/index.ts:23`](../packages/device/device-automation-harmonyos/src/index.ts)
+
+<a id="fadinglightdsh-device-automation-runtime"></a>
+
+## `@fadinglight/dsh-device-automation-runtime`
+
+Requires: `connection` · `fs` · `sessions`
+
+```ts config-catalog
+/** Host gateway limits and provider selection. */
+export interface Config {
+  /** Provider selected when the client does not name one. */
+  defaultProvider?: string
+  /** Delay advertised between completed screenshot requests. */
+  refreshMs?: number
+  /** Largest workspace file returned to the browser. */
+  maxFileBytes?: number
+  /** Largest directory listing returned to the browser. */
+  maxDirectoryEntries?: number
+}
+```
+
+Source: [`packages/device/device-automation-runtime/src/index.ts:76`](../packages/device/device-automation-runtime/src/index.ts)
+
 ## Loadable plugins with no config
 
 These load from a `cordis.yml` entry with no `config:` block; they declare no configuration API.
@@ -3271,7 +3271,6 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-client-ui-conversation` ([`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-cordis` ([`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-deliverables` — requires `systemPrompt` ([`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts))
-- `@deepseek-ai/dsh-client-ui-device-automation` ([`packages/client/ui-device-automation/src/index.ts`](../packages/client/ui-device-automation/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-browse` ([`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-native` ([`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-goal` ([`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts))
@@ -3303,7 +3302,6 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-command-goal` — requires `commands` · `goals` ([`packages/goal/command-goal/src/index.ts`](../packages/goal/command-goal/src/index.ts))
 - `@deepseek-ai/dsh-commands` ([`packages/interaction/commands/src/index.ts`](../packages/interaction/commands/src/index.ts))
 - `@deepseek-ai/dsh-cordis-client-runner` ([`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts))
-- `@deepseek-ai/dsh-device-automation` ([`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts))
 - `@deepseek-ai/dsh-fs-e2b` — requires `e2b` ([`packages/e2b/fs-e2b/src/index.ts`](../packages/e2b/fs-e2b/src/index.ts))
 - `@deepseek-ai/dsh-fs-observation-policy` ([`packages/fs/fs-observation-policy/src/index.ts`](../packages/fs/fs-observation-policy/src/index.ts))
 - `@deepseek-ai/dsh-goal-round-driver` — requires `agents` · `goals` · `sessions` ([`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts))
@@ -3329,6 +3327,8 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-tool-subagent-control` — requires `tools` · `subagents` ([`packages/subagent/tool-subagent-control/src/index.ts`](../packages/subagent/tool-subagent-control/src/index.ts))
 - `@deepseek-ai/dsh-user-questions` ([`packages/interaction/user-questions/src/index.ts`](../packages/interaction/user-questions/src/index.ts))
 - `@deepseek-ai/dsh-workspace` — requires `storageDomain` · `sessionPersistence` ([`packages/workspace/workspace/src/index.ts`](../packages/workspace/workspace/src/index.ts))
+- `@fadinglight/dsh-client-ui-device-automation` ([`packages/client/ui-device-automation/src/index.ts`](../packages/client/ui-device-automation/src/index.ts))
+- `@fadinglight/dsh-device-automation` ([`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts))
 
 ## Seam packages (not directly loadable)
 

@@ -1,2 +1,2 @@
 import { clientBundle } from '../tsdown.client.ts'
-export default clientBundle('@deepseek-ai/dsh-client-ui-device-automation', ['lib/types/index.js', 'lib/types/invariant.js'])
+export default clientBundle('@fadinglight/dsh-client-ui-device-automation', ['lib/types/index.js', 'lib/types/invariant.js'])

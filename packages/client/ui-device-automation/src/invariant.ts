@@ -7,4 +7,4 @@ const install: InvariantInstaller = () => {
   // No runtime invariant: the client catalog validates this package's slot contribution.
 }
 /** Register the package ownership companion. */
-export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-client-ui-device-automation', install))
+export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@fadinglight/dsh-client-ui-device-automation', install))

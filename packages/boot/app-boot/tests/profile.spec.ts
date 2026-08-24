@@ -152,6 +152,7 @@ describe('loadProfile', () => {
     // cannot be asserted to fail here: the source-plane test runner resolves
     // @deepseek-ai/* through tsconfig paths regardless of the staged anchor.
     expect(PROFILE_TEMPLATES.web).toContain('@deepseek-ai/dsh-base')
+    expect(PROFILE_TEMPLATES.web).toContain('@fadinglight/dsh-device-automation')
     try {
       loadProfile('t', 'web', anchor, home)
     } catch {
@@ -159,6 +160,20 @@ describe('loadProfile', () => {
     }
     expect(readProfileManifest('t', resolveProfileDir('web', home)).dsh?.profile?.bundles)
       .toEqual([...PROFILE_TEMPLATES.web ?? []])
+  })
+
+  it('normalizes the installation-owned Web tuple to the automation Bundle', () => {
+    const anchor = stageInstallation({
+      '@deepseek-ai/dsh-base': { patch: '[]\n' },
+      '@deepseek-ai/dsh-web-app': { patch: '[]\n' },
+      '@fadinglight/dsh-device-automation': { patch: '[]\n' },
+    })
+    const home = tmp()
+    const web = resolveProfileDir('web', home)
+    initProfile(web, ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'])
+    loadProfile('t', 'web', anchor, home)
+    expect(readProfileManifest('t', web).dsh?.profile?.bundles)
+      .toEqual(PROFILE_TEMPLATES.web)
   })
 
   it('normalizes only the exact installation-owned headless bundle tuple', () => {

@@ -1,4 +1,4 @@
-# @deepseek-ai/dsh-client-ui-device-automation
+# @fadinglight/dsh-client-ui-device-automation
 
 [English](README.md) | 中文
 

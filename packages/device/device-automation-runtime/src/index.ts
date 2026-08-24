@@ -2,7 +2,7 @@
  * Platform-neutral device automation registry and trusted browser gateway.
  * Providers own platform commands; this service owns selection, RPC input,
  * and read-only workspace file access for the automation panel.
- * @module @deepseek-ai/dsh-device-automation-runtime
+ * @module @fadinglight/dsh-device-automation-runtime
  */
 import { basename } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'

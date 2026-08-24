@@ -1,11 +1,11 @@
 {
-  "name": "@deepseek-ai/dsh-device-automation-runtime",
+  "name": "@fadinglight/dsh-device-automation-runtime",
   "description": "Cross-platform device automation provider registry and trusted browser gateway",
   "version": "0.1.0-rc.8",
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/cheliangzhao/deepseek-harness.git",
     "directory": "packages/device/device-automation-runtime"
   },
   "type": "module",

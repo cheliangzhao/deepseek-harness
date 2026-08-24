@@ -1,4 +1,4 @@
-# @deepseek-ai/dsh-device-automation-harmonyos
+# @fadinglight/dsh-device-automation-harmonyos
 
 [English](README.md) | 中文
 

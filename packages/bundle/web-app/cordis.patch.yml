@@ -209,22 +209,6 @@
     - id: ui-conversation
       name: '@deepseek-ai/dsh-client-ui-conversation'
 
-    # Cross-platform automation service. The provider is process-global while
-    # the browser workspace remains visible only for automation sessions.
-    - id: device-automation-runtime
-      name: '@deepseek-ai/dsh-device-automation-runtime'
-      config:
-        defaultProvider: harmonyos
-        refreshMs: 100
-        maxFileBytes: 1048576
-        maxDirectoryEntries: 1000
-
-    - id: device-automation-harmonyos
-      name: '@deepseek-ai/dsh-device-automation-harmonyos'
-
-    - id: ui-device-automation
-      name: '@deepseek-ai/dsh-client-ui-device-automation'
-
     # Official occupants for the generic sidebar and conversation brand slots.
     - id: ui-brand-official
       name: '@deepseek-ai/dsh-client-ui-brand-official'

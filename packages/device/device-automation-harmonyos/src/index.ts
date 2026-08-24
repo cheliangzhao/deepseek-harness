@@ -8,7 +8,7 @@ import type {
   DeviceAutomationProvider,
   DeviceScreenshot,
   RelativeTapPosition,
-} from '@deepseek-ai/dsh-device-automation-runtime'
+} from '@fadinglight/dsh-device-automation-runtime'
 import type { SubprocessHandle, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
 import type {} from '@deepseek-ai/dsh-subprocess'
 

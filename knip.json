@@ -637,6 +637,7 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
+        "@fadinglight/dsh-device-automation",
         "@deepseek-ai/.+"
       ]
     },
@@ -673,7 +674,9 @@
         "src/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@deepseek-ai/.+"
+        "@fadinglight/dsh-client-ui-device-automation",
+        "@fadinglight/dsh-device-automation-harmonyos",
+        "@fadinglight/dsh-device-automation-runtime"
       ]
     },
     "packages/client/ui-device-automation": {
