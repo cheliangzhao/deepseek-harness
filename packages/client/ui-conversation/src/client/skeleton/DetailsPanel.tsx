@@ -74,7 +74,7 @@ export function DetailsPanel({
   const selection = useStore(s => s.selection)
   // Session workspace root: an omitted or relative terminal cwd resolves
   // against it, which the pure presenter cannot see.
-  const sessionCwd = useSessions(list => sessionId === undefined ? undefined : list.byId[sessionId]?.cwd)
+  const sessionCwd = useSessions(list => list.byId[sessionId]?.cwd)
   const callId = selection?.callId
   // materialFor builds a fresh wrapper; shallowEqual short-circuits on its
   // stable members (result node reference rides the snapshot's structural sharing).
@@ -83,7 +83,7 @@ export function DetailsPanel({
     (a, b) => shallowEqual(a, b))
 
   const optional = detailsPanels.active()
-  if (optional !== undefined && sessionId !== undefined && optional.visible?.(sessionId) !== false) {
+  if (optional !== undefined && optional.visible?.(sessionId) !== false) {
     return <div className={css.frameless}>{optional.render()}</div>
   }
   return (

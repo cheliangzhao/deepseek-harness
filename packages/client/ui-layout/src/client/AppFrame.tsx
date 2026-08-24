@@ -94,7 +94,7 @@ export function AppFrame({
   const detailsSession = useSessions((s) => {
     const current = s.current
     const summary = current === undefined ? undefined : s.byId[current]
-    return current !== undefined && (summary?.blank !== true || summary?.agentPreset === 'automation') ? current : undefined
+    return current !== undefined && summary !== undefined && (!summary.blank || summary.agentPreset === 'automation') ? current : undefined
   })
   const frameRef = useRef<HTMLDivElement | null>(null)
   const [viewport, setViewport] = useState(() => window.innerWidth)

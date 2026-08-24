@@ -1,6 +1,7 @@
 /** Automation-only device-preview details mode and its header entry point. */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { createElement } from 'react'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
@@ -11,14 +12,19 @@ import { en, zh, type DevicePreviewKey } from './locales.ts'
 declare module '@deepseek-ai/dsh-client-ui-slots' { interface LocaleNamespaceMap { devicePreview: DevicePreviewKey } }
 
 const NS = 'devicePreview'
-export const inject = ['slots', 'locale', 'layout', 'detailsPanels', 'sessions']
+export const inject = ['slots', 'locale', 'layout', 'detailsPanels', 'sessions', 'connection']
 
 /** Registers device-preview content and its session-header shortcut. */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-device-preview: dictionaries')
   const t = ctx.locale.bind(NS)
+  const connection = ctx.get('connection') as ConnectionHandle
+  const tap = async (position: { x: number; y: number }): Promise<void> => {
+    const result = await connection.rpc.call('/device-preview', 'tap', position)
+    if (!result.ok) throw new Error(result.error.message)
+  }
   ctx.effect(() => {
-    const removePanel = ctx.detailsPanels.register({ id: 'device-preview', render: () => createElement(DevicePreviewPanel, { t }), visible: sessionId => ctx.sessions.list.getSnapshot().byId[sessionId]?.agentPreset === 'automation' })
+    const removePanel = ctx.detailsPanels.register({ id: 'device-preview', render: () => createElement(DevicePreviewPanel, { t, tap }), visible: sessionId => ctx.sessions.list.getSnapshot().byId[sessionId]?.agentPreset === 'automation' })
     const removeAction = ctx.slots.register({
       name: 'conversation.session.header.utilities', id: 'device-preview', order: 20, locale: NS,
       inject: () => ({ toggle: () => {

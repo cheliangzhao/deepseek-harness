@@ -704,6 +704,28 @@ export interface Config {
 
 Source: [`packages/goal/goal/src/index.ts:116`](../packages/goal/goal/src/index.ts)
 
+<a id="deepseek-aidsh-harmony-screen-preview"></a>
+
+## `@deepseek-ai/dsh-harmony-screen-preview`
+
+Requires: `subprocess` · `webServer` · `connection`
+
+```ts config-catalog
+/** Screenshot-provider configuration. */
+export interface Config {
+  /** Optional absolute DevEco CLI executable path. */
+  devecoCliExecutable?: string
+  /** Optional serial of the authorized target device. */
+  deviceSerial?: string
+  /** Largest accepted screenshot in bytes. */
+  maxBytes?: number
+  /** Screenshot and click command deadline in milliseconds. */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/harmony/screen-preview/src/index.ts:23`](../packages/harmony/screen-preview/src/index.ts)
+
 <a id="deepseek-aidsh-headless"></a>
 
 ## `@deepseek-ai/dsh-headless`
@@ -3227,6 +3249,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-client-ui-conversation` ([`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-cordis` ([`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-deliverables` — requires `systemPrompt` ([`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts))
+- `@deepseek-ai/dsh-client-ui-device-preview` ([`packages/client/ui-device-preview/src/index.ts`](../packages/client/ui-device-preview/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-browse` ([`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-native` ([`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-goal` ([`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts))
