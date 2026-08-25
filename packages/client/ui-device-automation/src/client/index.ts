@@ -1,11 +1,13 @@
-/** Files + Device workspace contributed as a standard conversation view. */
-import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+/** Standalone Files + Device workspace mounted as a plugin-owned right sidebar. */
+import { createElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import { DeviceAutomationPanel } from './panel.tsx'
+import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type { DirectoryListing, OpenedFile, ScreenshotFrame } from './panel.tsx'
 import { en, zh, type DeviceAutomationKey } from './locales.ts'
+import { DeviceAutomationSidebar } from './sidebar.tsx'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -15,12 +17,12 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 const NS = 'deviceAutomation'
 const CHANNEL = '/device-automation'
-export const inject = ['slots', 'locale', 'connection']
+export const inject = ['sessions', 'locale', 'connection']
 
 /**
- * Register the automation workspace in the conversation view ring.
- * @param ctx - client context carrying slots, locale, and Connection.
- * @returns nothing; registrations are effect-owned.
+ * Mount the automation workspace beside the Web application.
+ * @param ctx - client context carrying sessions, locale, and Connection.
+ * @returns nothing; the portal is effect-owned.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-device-automation: dictionaries')
@@ -60,14 +62,28 @@ export function apply(ctx: ClientContext): void {
       content: stringValue(record.content, 'content'),
     }
   }
-  ctx.slots.inject('conversation.view', () => ctx.slots.register({
-    name: 'conversation.view',
-    id: 'device-automation',
-    order: 20,
-    locale: NS,
-    label: () => t('open'),
-    inject: (_sessionId: SessionId) => ({ capture, tap, list, read }),
-  }, DeviceAutomationPanel))
+  const sessions = ctx.sessions
+  ctx.effect(() => {
+    const host = document.createElement('div')
+    host.dataset.dshDeviceAutomationHost = ''
+    let root: Root | undefined
+    try {
+      document.body.appendChild(host)
+      root = createRoot(host)
+      root.render(createElement(DeviceAutomationSidebar, { sessions, t, capture, tap, list, read }))
+    } catch (error) {
+      root?.unmount()
+      host.remove()
+      throw error
+    }
+    return () => {
+      try {
+        root.unmount()
+      } finally {
+        host.remove()
+      }
+    }
+  }, 'ui-device-automation: sidebar portal')
 }
 
 async function call(

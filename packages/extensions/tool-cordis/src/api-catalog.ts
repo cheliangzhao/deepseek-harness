@@ -169,6 +169,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the preset id, or undefined when the agent joined none.',
       },
       {
+        signature: 'registerSystemRoot(path: string): () => void',
+        description: 'Add a read-only preset directory supplied by an installed Bundle. Contributions follow configured roots and precede the derived user root; registration order resolves duplicate ids between Bundles.',
+        parameters: [{ name: 'path', description: 'directory containing one subdirectory per bundled preset.' }],
+        returns: 'an idempotent disposer that removes this contribution.',
+      },
+      {
         signature: 'async read(id: string): Promise<string>',
         description: 'Read one preset\'s composition text.',
         parameters: [{ name: 'id', description: 'the preset id.' }],

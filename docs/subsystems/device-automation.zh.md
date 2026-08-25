@@ -2,7 +2,7 @@
 
 [English](device-automation.md) | 中文
 
-设备自动化能力将平台无关运行时（[dsh-device-automation-runtime](../../packages/device/device-automation-runtime/README.zh.md)，`ctx.deviceAutomation`）、[HarmonyOS](../../packages/device/device-automation-harmonyos/README.zh.md) 等平台 Provider，以及浏览器 [文件 + 设备 Consumer](../../packages/client/ui-device-automation/README.zh.md) 分开。可安装的 [dsh-device-automation Bundle](../../packages/device/device-automation/README.zh.md) 组合这些角色。Android 与 iOS Provider 可以实现相同的 Provider 接口，无需改变浏览器请求。[Provider seam Agent Note](../../.agents/notes/implemented/architecture/2026-08-24-device-automation-provider-seam.zh.md)记录了角色拆分。
+设备自动化能力将平台无关运行时（[dsh-device-automation-runtime](../../packages/device/device-automation-runtime/README.zh.md)，`ctx.deviceAutomation`）、[HarmonyOS](../../packages/device/device-automation-harmonyos/README.zh.md) 等平台 Provider，以及浏览器 [文件 + 设备 Consumer](../../packages/client/ui-device-automation/README.zh.md) 分开。可安装的 [dsh-device-automation Bundle](../../packages/device/device-automation/README.zh.md) 组合这些角色，并将其打包的 `automation` preset 注册为只读系统根目录。Android 与 iOS Provider 可以实现相同的 Provider 接口，无需改变浏览器请求。[Provider seam Agent Note](../../.agents/notes/implemented/architecture/2026-08-24-device-automation-provider-seam.zh.md)记录了角色拆分。
 
 源码：[`packages/device/device-automation-runtime/src/index.ts`](../../packages/device/device-automation-runtime/src/index.ts)
 
@@ -70,7 +70,7 @@ interface DeviceAutomationProvider {
 
 运行时通过 Connection 服务以 `trusted-host` 权限注册 `/device-automation`。该通道提供 Provider 发现、截图、相对坐标点击、目录列表与受大小限制的 UTF-8 文件读取。浏览器请求不能指定任意工作区：文件操作从 `SessionHeader.cwd` 获取在线会话工作目录，通过 `ctx.fs` 解析路径，并拒绝解析后位于该目录之外的目标。目录和文件大小限制属于部署配置。
 
-截图响应携带完整 PNG 字节和 Host 选定的下次请求等待时间。Consumer 会等到替换图片解码后再丢弃上一帧，并在设备视图或浏览器文档隐藏时停止轮询。
+截图响应携带完整 PNG 字节和 Host 选定的下次请求等待时间。仅当当前 Session 记录了 `automation` agent preset 时，Consumer 才存在，并在侧栏标题中显示该模式；它会等到替换图片解码后再丢弃上一帧，并在“设备”页签、独立右侧栏或浏览器文档隐藏时停止轮询。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 

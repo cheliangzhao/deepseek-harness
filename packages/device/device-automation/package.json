@@ -1,7 +1,7 @@
 {
   "name": "@fadinglight/dsh-device-automation",
   "description": "Installable Files and cross-platform device automation workspace",
-  "version": "0.1.0-rc.9",
+  "version": "0.1.0-rc.10",
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
@@ -18,20 +18,23 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
-  "files": ["lib/index.js", "lib/invariant.js", "cordis.patch.yml", "lib/types/**/*.d.ts"],
+  "files": ["lib/index.js", "lib/invariant.js", "cordis.patch.yml", "presets/**", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "dependencies": {
+    "@deepseek-ai/dsh-tool-harmonyos-uitest": "workspace:^",
     "@fadinglight/dsh-client-ui-device-automation": "workspace:^",
     "@fadinglight/dsh-device-automation-harmonyos": "workspace:^",
     "@fadinglight/dsh-device-automation-runtime": "workspace:^"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/dsh-agent-presets": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/dsh-agent-presets": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^"
   }
 }

@@ -674,6 +674,7 @@
         "src/**/*.ts"
       ],
       "ignoreDependencies": [
+        "@deepseek-ai/dsh-tool-harmonyos-uitest",
         "@fadinglight/dsh-client-ui-device-automation",
         "@fadinglight/dsh-device-automation-harmonyos",
         "@fadinglight/dsh-device-automation-runtime"

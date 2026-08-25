@@ -12,10 +12,10 @@ The first browser device preview directly combined HarmonyOS DevEco CLI commands
 
 Device automation is a four-package composition:
 
-- `@fadinglight/dsh-device-automation` is the installable Bundle and publishing unit. The `@fadinglight/*` packages are excluded from the repository's `@deepseek-ai/*` release family and publish independently.
+- `@fadinglight/dsh-device-automation` is the installable Bundle and publishing unit. It also owns registration of the packaged automation preset. The `@fadinglight/*` packages are excluded from the repository's `@deepseek-ai/*` release family and publish independently.
 - `@fadinglight/dsh-device-automation-runtime` owns `ctx.deviceAutomation`, named Provider selection, trusted browser RPC, and read-only workspace access through `ctx.fs`.
 - `@fadinglight/dsh-device-automation-harmonyos` registers the `harmonyos` Provider and is the only package that knows DevEco CLI argv.
-- `@fadinglight/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device through the public `conversation.view` slot.
+- `@fadinglight/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device through a plugin-owned right-sidebar portal.
 
 The runtime selects a request-named Provider, then the configured default, then a sole registered Provider. Multiple Providers without an explicit choice fail loud. The current Provider interface includes only screenshot and relative tap because those are the operations with current Consumers; gestures, text entry, rotation, and device selection are added only with a concrete cross-platform requirement.
 
@@ -25,18 +25,23 @@ The HarmonyOS Provider serializes screenshots and taps through one lifecycle-own
 
 ## Better Sidebar relationship
 
-The Files + Device workspace follows Better Sidebar's compact tab-workspace idea, not its implementation or dependency graph. No Better Sidebar source is copied. The UI registers one ordinary `conversation.view` entry and does not extend the Web application or `ui-conversation` packages. Directory navigation and file viewing use Harness services and slots, which preserves session workspace authority, client lifecycle, localization, and the repository's trust fence.
+The Files + Device workspace independently applies Better Sidebar's layout pattern without using its package or source. The client appends an effect-owned React portal to `document.body` and subscribes to the authoritative `ctx.sessions.list` selection. It renders the sidebar only when the selected Session records the `automation` preset, displays that mode in the sidebar title, and writes a package-specific CSS width variable that makes `#root` yield space while the panel is open. Selecting any other mode unmounts the workspace, stops screenshot polling, and removes the layout contribution. Disposal unmounts the React root, removes the portal, restores the layout variable, and ends the Session subscription. Directory navigation and file viewing keep using Harness services, which preserves session workspace authority, localization, and the repository's trust fence.
+
+The aggregate carries `presets/automation` and registers its package-local directory through `AgentPresets.registerSystemRoot()`. The contribution has `system` trust and follows the aggregate plugin's effect lifetime, so unload and HMR remove the mode from the next roster read without copying files into the user root. The aggregate depends on the HarmonyOS tool named by the preset; the host installation supplies the preset's other standard rows.
 
 ## Alternatives considered
 
-- **Install Better Sidebar and hide unwanted tabs.** Hidden terminal, Git, browser, and PTY routes would remain loaded and published.
+- **Depend on Better Sidebar and register an external tab.** Its terminal, Git, browser, PTY, and Host routes would remain part of the installed dependency even when their tabs are disabled.
 - **Keep one HarmonyOS-specific client and add platform conditionals.** Every new platform would change the browser package and duplicate selection rules.
 - **Keep screenshots on an exact HTTP route.** This needs a second trust-fence application and splits one feature across two browser transports.
 - **Expose the model's filesystem tool directly to the browser.** Tool calls carry model policy and transcript semantics; human read-only browsing is a separate Consumer of `ctx.fs`.
-- **Add a dedicated details-column registry to `ui-conversation`.** An independently published plugin would then wait forever when installed into a DSH release without that private service; the existing conversation-view slot already owns optional full-session views.
+- **Add a dedicated details-column registry to `ui-conversation`.** An independently published plugin would then wait forever when installed into a DSH release without that private service.
+- **Expose the sidebar for every agent preset.** Device controls would appear outside the automation workflow and a visible Device tab could keep polling in unrelated sessions.
+- **Configure the Bundle preset path in the Web roster.** Profile configuration cannot portably derive an installed Bundle's directory and would couple the Web preset to the plugin's package layout.
+- **Copy the preset into the user root during installation.** Installation would mutate user-owned state, assign the wrong trust and lifecycle ownership, and leave upgrades and removal without one authoritative source.
 
 ## Consequences
 
-Android and iOS can register Providers without changing the browser RPC or React components. The installable Bundle can initially publish one HarmonyOS composition while the runtime remains platform-neutral. The Web profile loads that aggregate Bundle instead of duplicating its internal rows, and the automation preset retains only model-visible tooling and skill guidance.
+Android and iOS can register Providers without changing the browser RPC or React components. The installable Bundle can initially publish one HarmonyOS composition while the runtime remains platform-neutral. The Web profile loads that aggregate Bundle instead of duplicating its internal rows. The aggregate supplies the automation mode, while the preset itself retains only model-visible tooling and skill guidance.
 
-Unit tests cover Provider selection, malformed wire input, workspace containment, screenshot validation, relative tap mapping, serial execution, and awaited disposal. The assembled keyless Web scenario boots the shipped Loader and browser bundles, opens a real workspace file, clicks the rendered device frame, observes the exact `devecocli ui click` argv, and verifies a later frame replaces it. A publish-path rehearsal packs the aggregate and its internal packages, installs the aggregate tarball into a fresh DSH profile, and dumps the composed tree through the built CLI.
+Unit tests cover Provider selection, malformed wire input, workspace containment, screenshot validation, relative tap mapping, serial execution, awaited disposal, preset-root disposal, mode-scoped sidebar rendering, and sidebar HMR cleanup. The assembled keyless Web scenario boots the shipped Loader and browser bundles, verifies that the standard mode has no device sidebar, resolves and opens the bundled automation mode, checks its sidebar title, opens a real workspace file, clicks the rendered device frame, observes the exact `devecocli ui click` argv, and verifies a later frame replaces it. A publish-path rehearsal packs the aggregate and its internal packages, installs the aggregate tarball into a fresh DSH profile, verifies the installed preset and effect disposer, and dumps the composed tree through the built CLI.

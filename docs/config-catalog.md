@@ -3328,7 +3328,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-user-questions` ([`packages/interaction/user-questions/src/index.ts`](../packages/interaction/user-questions/src/index.ts))
 - `@deepseek-ai/dsh-workspace` — requires `storageDomain` · `sessionPersistence` ([`packages/workspace/workspace/src/index.ts`](../packages/workspace/workspace/src/index.ts))
 - `@fadinglight/dsh-client-ui-device-automation` ([`packages/client/ui-device-automation/src/index.ts`](../packages/client/ui-device-automation/src/index.ts))
-- `@fadinglight/dsh-device-automation` ([`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts))
+- `@fadinglight/dsh-device-automation` — requires `agentPresets` ([`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts))
 
 ## Seam packages (not directly loadable)
 

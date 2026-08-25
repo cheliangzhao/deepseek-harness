@@ -4,6 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../../vendor/cordis" },
+    { "path": "../../preset/agent-presets" },
     { "path": "../../runtime-diagnostics/invariants" }
   ]
 }

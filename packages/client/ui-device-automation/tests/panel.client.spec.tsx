@@ -287,6 +287,7 @@ describe('DeviceAutomationPanel', () => {
     const capture = vi.fn(async () => frame)
     const list = vi.fn(async () => ({ cwd: '/repo', path: '/repo', entries: [], truncated: false }))
     render(<DeviceAutomationPanel sessionId="s1" t={t} capture={capture} tap={vi.fn()} list={list} read={vi.fn()} />)
+    expect(screen.getByText('自动化测试模式')).toBeTruthy()
     await screen.findByRole('img', { name: zh.imageAlt })
     fireEvent.click(screen.getByRole('button', { name: zh.files }))
     await screen.findByText(zh.emptyDirectory)

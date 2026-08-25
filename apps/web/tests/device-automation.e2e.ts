@@ -20,7 +20,6 @@ const ARGV_EXPECTED = join(SNAPSHOT_DIR, 'tap-argv.expected.json')
 const FILE_EXPECTED = join(SNAPSHOT_DIR, 'file-open.expected.txt')
 const SCREEN = fileURLToPath(new URL('../../../examples/device-automation/tests/fixtures/screen.png', import.meta.url))
 const CLI_FIXTURE = fileURLToPath(new URL('./fixtures/device-automation-devecocli.mjs', import.meta.url))
-const SHIPPED_PRESETS = fileURLToPath(new URL('../../cli/config/agent-presets', import.meta.url))
 const MODE = webSnapshotMode()
 const SESSION_ID = 'device-automation-web-e2e'
 
@@ -60,8 +59,10 @@ describe('web e2e: device automation workspace', () => {
     process.env.DEVICE_AUTOMATION_TEST_LOG = callLog
     process.env.DEVICE_AUTOMATION_TEST_SCREEN = SCREEN
 
-    scaffold = await launchWebScaffold({
-      agentPresets: { roots: [{ path: SHIPPED_PRESETS, trust: 'system' }], default: 'standard' },
+    scaffold = await launchWebScaffold()
+    expect(await scaffold.ctx.agentPresets.resolve('automation')).toMatchObject({
+      id: 'automation',
+      trust: 'system',
     })
     await writeFile(join(scaffold.workspaceCwd, 'automation-sample.txt'), 'device automation workspace\n', 'utf8')
     await seedSession(scaffold, seedLog(), SESSION_ID, 'automation')
@@ -89,15 +90,20 @@ describe('web e2e: device automation workspace', () => {
 
   it('maps a browser image point to the retained PNG and snapshots the emitted click argv', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-device-automation-tap'))
+    await page.getByText('Standard mode', { exact: true }).waitFor({ timeout: 15_000 })
+    expect(await page.getByRole('complementary', { name: 'Device automation', exact: true }).count()).toBe(0)
+    expect(await page.evaluate(() => document.documentElement.style
+      .getPropertyValue('--dsh-device-automation-sidebar-width'))).toBe('')
+
     const groupRow = page.locator('[role="treeitem"]').first()
     await groupRow.waitFor({ timeout: 15_000 })
     await groupRow.click()
     const sessionRow = page.locator('[role="treeitem"]').nth(1)
     await sessionRow.waitFor({ timeout: 10_000 })
     await sessionRow.click()
-    const deviceTab = page.getByRole('tab', { name: 'Device automation', exact: true })
-    await deviceTab.waitFor({ timeout: 15_000 })
-    await deviceTab.click()
+    const sidebar = page.getByRole('complementary', { name: 'Device automation', exact: true })
+    await sidebar.waitFor({ timeout: 15_000 })
+    await sidebar.getByText('Automation test mode', { exact: true }).waitFor({ timeout: 10_000 })
     const image = page.getByRole('img', { name: 'Current automated device screen', exact: true })
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth), {
       timeout: 15_000,
@@ -119,6 +125,29 @@ describe('web e2e: device automation workspace', () => {
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
   }, 60_000)
+
+  it('reserves the collapsed entry beside the Session log utility', async () => {
+    const sidebar = page.getByRole('complementary', { name: 'Device automation', exact: true })
+    await sidebar.getByRole('button', { name: 'Close device automation', exact: true }).click()
+    const openButton = page.getByRole('button', { name: 'Device automation', exact: true })
+    const sessionLog = page.getByRole('button', { name: 'Session log', exact: true })
+    await openButton.waitFor({ timeout: 10_000 })
+    await sessionLog.waitFor({ timeout: 10_000 })
+    await expect.poll(() => page.locator('[data-slot="conversation.session.header"] > header')
+      .evaluate(element => getComputedStyle(element).paddingRight), { timeout: 10_000 }).toBe('52px')
+
+    const openBounds = await openButton.boundingBox()
+    const logBounds = await sessionLog.boundingBox()
+    expect(openBounds).not.toBeNull()
+    expect(logBounds).not.toBeNull()
+    expect(openBounds!.x - (logBounds!.x + logBounds!.width)).toBeGreaterThanOrEqual(8)
+    const openCenter = openBounds!.y + openBounds!.height / 2
+    const logCenter = logBounds!.y + logBounds!.height / 2
+    expect(Math.abs(openCenter - logCenter)).toBeLessThanOrEqual(0.5)
+
+    await openButton.click()
+    await sidebar.waitFor({ state: 'visible', timeout: 10_000 })
+  })
 
   it('opens a workspace file through the shipped Files surface', async () => {
     const filesTab = page.getByRole('button', { name: 'Files', exact: true })

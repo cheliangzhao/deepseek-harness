@@ -27,6 +27,7 @@ const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 const DEVICE_AUTOMATION_PATCH = join(REPO_ROOT, 'packages/device/device-automation/cordis.patch.yml')
+const AUTOMATION_PRESET_DIR = join(REPO_ROOT, 'packages/device/device-automation/presets/automation')
 const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
 const CLAUDE_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-claude-code')
 /** The installation anchor whose dependency surface the preset module fallback mirrors. */
@@ -85,6 +86,12 @@ async function bootWeb(
     { id: 'skill-badge', disabled: false },
     { id: 'modules', disabled: true },
     { id: 'connection', disabled: true },
+    // The preset registrar remains active, while the device workspace roles
+    // that depend on the disabled browser transport stay outside this
+    // agent-capability composition test.
+    { id: 'device-automation-runtime', disabled: true },
+    { id: 'device-automation-harmonyos', disabled: true },
+    { id: 'ui-device-automation', disabled: true },
     // The always-on reload chain waits for the browser roster and bound port
     // disabled above.
     { id: 'client-hmr', disabled: true },
@@ -218,7 +225,7 @@ describe('the shipped Web composition', () => {
     }
   })
 
-  it('supplies the five shipped presets, and only those, from the system root', async () => {
+  it('supplies the five shipped presets, and only those, from system roots', async () => {
     const listed = await ctx.agentPresets.list()
 
     expect(listed.map(preset => preset.id).sort()).toEqual(['automation', 'code', 'cordis', 'minimal', 'standard'])
@@ -349,7 +356,7 @@ describe('the shipped Web composition', () => {
     // The preset's skill root is derived from its own `baseUrl`, so the skill
     // travels with the directory wherever the preset is installed.
     const skill = join(
-      CONFIG_DIR, 'agent-presets', 'automation', 'skills', 'deveco-cli', 'SKILL.md',
+      AUTOMATION_PRESET_DIR, 'skills', 'deveco-cli', 'SKILL.md',
     )
 
     expect((await readFile(skill, 'utf8')).startsWith('---\nname: deveco-cli')).toBe(true)

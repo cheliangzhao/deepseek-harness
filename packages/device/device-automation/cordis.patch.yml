@@ -1,6 +1,8 @@
-# Installable automation workspace: runtime, HarmonyOS provider, and the
-# browser's deliberately small Files + Device surface.
+# Installable automation workspace and agent mode.
 - insert:
+    - id: device-automation-presets
+      name: '@fadinglight/dsh-device-automation'
+
     - id: device-automation-runtime
       name: '@fadinglight/dsh-device-automation-runtime'
       config:

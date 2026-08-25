@@ -128,4 +128,36 @@ describe('the harness-home preset root', () => {
     expect(existsSync(join(explicit, 'copied', COMPOSITION_FILE))).toBe(true)
     expect(existsSync(join(home, USER_ROOT_SEGMENT, 'copied'))).toBe(false)
   })
+
+  it('discovers an effect-owned Bundle root until its plugin unloads', async () => {
+    const contributed = await mkdtemp(join(tmpdir(), 'dsh-preset-bundle-'))
+    await mkdir(join(contributed, 'automation'))
+    await writeFile(join(contributed, 'automation', COMPOSITION_FILE), '[]\n')
+    const ctx = await roster()
+    const fiber = ctx.plugin({
+      inject: ['agentPresets'],
+      apply(pluginCtx) {
+        pluginCtx.effect(
+          () => pluginCtx.agentPresets.registerSystemRoot(contributed),
+          'test: bundled preset root',
+        )
+      },
+    })
+    await fiber
+
+    expect(ctx.agentPresets.roots.map(root => root.path)).toEqual([
+      SYSTEM_ROOT,
+      contributed,
+      join(home, USER_ROOT_SEGMENT),
+    ])
+    expect(await ctx.agentPresets.resolve('automation')).toMatchObject({ trust: 'system' })
+
+    await fiber.dispose()
+
+    expect(ctx.agentPresets.roots.map(root => root.path)).toEqual([
+      SYSTEM_ROOT,
+      join(home, USER_ROOT_SEGMENT),
+    ])
+    await expect(ctx.agentPresets.resolve('automation')).rejects.toThrow(/not found/)
+  })
 })

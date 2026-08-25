@@ -92,17 +92,14 @@ export class AgentPresets extends Service {
     includeUserRoot: z.boolean().default(true),
   }) as z<Config>
 
-  /**
-   * The roots discovery and authoring actually scan: every configured root in
-   * order, then the harness-home user root unless `includeUserRoot` is false.
-   *
-   * Derived once, because a root set that changed between `list()` and the
-   * `copy()` acting on its answer would author into a directory the caller
-   * never saw. Appending rather than prepending keeps an earlier configured
-   * root winning a duplicate id, so a shipped preset still shadows a
-   * locally authored directory that claimed its name.
-   */
-  private readonly resolvedRoots: readonly PresetRoot[]
+  /** Deployment-configured roots, in their declared precedence order. */
+  private readonly configuredRoots: readonly PresetRoot[]
+
+  /** Effect-owned system roots contributed by installed Bundles. */
+  private readonly contributedSystemRoots: PresetRoot[] = []
+
+  /** Derived local authoring root, kept last when enabled. */
+  private readonly userRoot: PresetRoot | undefined
 
   /**
    * The user layer over `config.default`, present only while a settings
@@ -130,9 +127,10 @@ export class AgentPresets extends Service {
   constructor(ctx: Context, public config: Config) {
     super(ctx, 'agentPresets')
     this.selfCtx = ctx
-    this.resolvedRoots = config.includeUserRoot
-      ? [...config.roots, { path: dshHomePath(USER_PRESET_DIR), trust: 'user' }]
-      : [...config.roots]
+    this.configuredRoots = [...config.roots]
+    this.userRoot = config.includeUserRoot
+      ? { path: dshHomePath(USER_PRESET_DIR), trust: 'user' }
+      : undefined
     // Deliberately not `installSettingsSection`: that helper exists to re-judge
     // what a consumer DERIVED from the source — memoized resolutions,
     // registration-level facts — across attach, detach, and change. Nothing
@@ -164,7 +162,7 @@ export class AgentPresets extends Service {
     // does that today — the Web surface mounts in `setup` and children join
     // through `composeFrom` before publication.
     ctx.on('agent/created', ({ agent }) => {
-      if (this.resolvedRoots.length === 0) return
+      if (this.roots.length === 0) return
       if (this.composedPreset(agent.ctx) !== undefined) return
       ctx.logger.warn(
         `agent "${agent.id}" was published without joining an agent preset; `
@@ -197,7 +195,7 @@ export class AgentPresets extends Service {
    * @returns the presets, first-root-wins per id.
    */
   async list(): Promise<AgentPreset[]> {
-    return await discoverPresets(this.resolvedRoots)
+    return await discoverPresets(this.roots)
   }
 
   /**
@@ -338,18 +336,39 @@ export class AgentPresets extends Service {
   }
 
   /**
-   * The roots this roster scans, which is not `config.roots`: it is every
-   * configured root in order, then the harness-home user root unless
-   * `includeUserRoot` is false. Read this — not the config field — to answer
-   * whether a roster is composed at all, so one derivation decides it.
+   * The roots this roster scans: configured roots, Bundle-contributed system
+   * roots in registration order, then the harness-home user root when enabled.
    */
   get roots(): readonly PresetRoot[] {
-    return this.resolvedRoots
+    return [
+      ...this.configuredRoots,
+      ...this.contributedSystemRoots,
+      ...(this.userRoot === undefined ? [] : [this.userRoot]),
+    ]
   }
 
   /** Whether this deployment has a root locally authored presets go to. */
   get authorable(): boolean {
-    return this.resolvedRoots.some(root => root.trust === 'user')
+    return this.roots.some(root => root.trust === 'user')
+  }
+
+  /**
+   * Add a read-only preset directory supplied by an installed Bundle.
+   * Contributions follow configured roots and precede the derived user root;
+   * registration order resolves duplicate ids between Bundles.
+   * @param path - directory containing one subdirectory per bundled preset.
+   * @returns an idempotent disposer that removes this contribution.
+   */
+  registerSystemRoot(path: string): () => void {
+    const root: PresetRoot = { path, trust: 'system' }
+    this.contributedSystemRoots.push(root)
+    let active = true
+    return () => {
+      if (!active) return
+      active = false
+      const index = this.contributedSystemRoots.indexOf(root)
+      if (index !== -1) this.contributedSystemRoots.splice(index, 1)
+    }
   }
 
   /**
@@ -385,7 +404,7 @@ export class AgentPresets extends Service {
     if ((await this.list()).some(preset => preset.id === id)) {
       throw new PresetExistsError(id)
     }
-    await copyComposition(this.resolvedRoots, source, id, name)
+    await copyComposition(this.roots, source, id, name)
     // A settled mount under this id can only be stale (its preset was deleted
     // from disk outside `remove`); the new preset must not inherit it. Every
     // session already joined keeps the generation it runs on regardless.
@@ -398,7 +417,7 @@ export class AgentPresets extends Service {
    * @throws when the preset is unknown or ships with the deployment.
    */
   async remove(id: string): Promise<void> {
-    await deleteComposition(this.resolvedRoots, await this.resolve(id))
+    await deleteComposition(this.roots, await this.resolve(id))
     // Sessions on the deleted preset keep their standing mount; only new
     // sessions see the roster without it.
     this.standing.delete(id)

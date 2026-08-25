@@ -8,7 +8,7 @@ The mechanism is two seams. Entry contexts chain to the context a subtree was pl
 
 ## Service: `AgentPresets` (ctx key: `agentPresets`)
 
-Discovery is unmemoized: `list()` and `resolve()` re-read the roots on every call, so a preset authored while the process runs is visible immediately and a deleted one disappears from the next read. Discovery also owns preset **health**: a directory whose composition is missing or unloadable (unparsable YAML — checked with the loader's own dialect, `!!js` included — or not a list of named plugin rows) is listed with a `broken` reason rather than skipped, because a skipped directory would still occupy its id on disk while every surface shows nothing to delete. A directory whose name is not a usable preset id (`[a-z0-9][a-z0-9-]*`) is skipped outright: no copy could ever claim it.
+Discovery is unmemoized: `list()` and `resolve()` re-read the active roots on every call, so authored presets and effect-owned Bundle roots follow their current filesystem and plugin lifecycles. Discovery also owns preset **health**: a directory whose composition is missing or unloadable (unparsable YAML — checked with the loader's own dialect, `!!js` included — or not a list of named plugin rows) is listed with a `broken` reason rather than skipped, because a skipped directory would still occupy its id on disk while every surface shows nothing to delete. A directory whose name is not a usable preset id (`[a-z0-9][a-z0-9-]*`) is skipped outright: no copy could ever claim it.
 
 - `ctx.agentPresets.defaultId: string` The preset id mounted when a caller names none.
 - `ctx.agentPresets.list(): Promise<AgentPreset[]>` Every preset the configured roots currently supply, earlier root winning a duplicate id; broken presets included, each carrying its reason.
@@ -18,7 +18,8 @@ Discovery is unmemoized: `list()` and `resolve()` re-read the roots on every cal
 - `ctx.agentPresets.composedPreset(agentCtx): string | undefined` The preset one LIVE agent runs on, read from its scope chain rather than from its session — the only answer available for an agent whose durable header is still being built.
 - `ctx.agentPresets.recompose(agentCtx, id): Promise<AgentPreset>` Re-link one agent to a different preset's standing composition. Valid only while the agent has produced nothing — **the caller owns that check**; the new mount is ensured before the link moves, so a failure leaves the agent as it was. Refuses a broken preset like `mount()`.
 - `ctx.agentPresets.standingKeyFor(id?): Promise<ScopeKey>` The standing scope key a host reader with no agent (a cold transcript read) resolves preset registrations in; ensures the mount without starting an agent, session, or turn. Refuses a broken preset like `mount()`.
-- `ctx.agentPresets.roots: readonly PresetRoot[]` The roots this roster scans — every configured root in order, then the derived harness-home root. Not `config.roots`: read this to answer whether a roster is composed at all, so one derivation decides it.
+- `ctx.agentPresets.roots: readonly PresetRoot[]` The roots this roster currently scans — configured roots, Bundle-contributed system roots in registration order, then the derived harness-home root.
+- `ctx.agentPresets.registerSystemRoot(path): () => void` Add a read-only preset root supplied by an installed Bundle. The disposer removes that root, so unload and HMR remove its modes from the next roster read.
 - `ctx.agentPresets.authorable: boolean` Whether any of those roots has `user` trust, and therefore whether a preset can be created at all.
 - `ctx.agentPresets.read(id): Promise<string>` One preset's composition text, exactly as stored.
 - `ctx.agentPresets.copy(from, id, name?): Promise<void>` Create a locally authored preset by copying an existing one's whole directory — the only authoring write. No composition text crosses this seam, so a copy is exactly as loadable as its source; the copied metadata keeps the source's description but never its name or roster order, and `name` (or the id fallback) is what distinguishes the rows.
@@ -93,13 +94,13 @@ An absent root supplies no presets rather than failing: the user root does not e
 
 ### The writable root is this package's, the shipped root is the app's
 
-`<dshHome>/.agent-presets` is where a person's own presets live, the way `<dshHome>/skills` is where their own skills live ([`dsh-skill-filesystem`](../../skill/skill-filesystem/README.md)), so the roster derives it rather than waiting for a deployment to remember it — a launcher that configures nothing still finds and authors presets. It is appended AFTER every configured root, which keeps an earlier root winning a duplicate id: a shipped `standard` still shadows a home directory that claimed the name, and `copy()` refuses that id rather than landing a preset nothing would resolve.
+`<dshHome>/.agent-presets` is where a person's own presets live, the way `<dshHome>/skills` is where their own skills live ([`dsh-skill-filesystem`](../../skill/skill-filesystem/README.md)), so the roster derives it rather than waiting for a deployment to remember it — a launcher that configures nothing still finds and authors presets. It is appended after every configured and Bundle-contributed root, which keeps an earlier root winning a duplicate id: a shipped `standard` still shadows a home directory that claimed the name, and `copy()` refuses that id rather than landing a preset nothing would resolve.
 
-The roots are resolved once, when the service is constructed. A root set that changed between a `list()` and the `copy()` acting on its answer would author into a directory the caller never saw.
+Configured roots and the derived user root are fixed when the service is constructed. Installed Bundles add only `system` roots through effect-owned registrations, so plugin lifecycle can change discovery without changing the writable destination used by `copy()`.
 
 `includeUserRoot: false` mounts a roster over `roots` alone. A deployment that confines presets to its own directories needs it, and so does any test pinning an exact roster — otherwise the machine's real `<dshHome>` decides what the roster contains.
 
-The SHIPPED root stays an assembly fact: it sits beside the installed app's own config, a path only that app can resolve.
+The app's shipped root remains an assembly fact because it sits beside the installed app's own config. A Bundle instead resolves its packaged preset directory relative to its own module and registers that directory through `registerSystemRoot()`.
 
 ### The default preset is a user setting
 

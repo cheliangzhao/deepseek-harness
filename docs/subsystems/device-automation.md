@@ -2,7 +2,7 @@
 
 English | [中文](device-automation.zh.md)
 
-The device automation capability separates the platform-neutral runtime ([dsh-device-automation-runtime](../../packages/device/device-automation-runtime/README.md), `ctx.deviceAutomation`), platform Providers such as [HarmonyOS](../../packages/device/device-automation-harmonyos/README.md), and the browser [Files + Device Consumer](../../packages/client/ui-device-automation/README.md). The installable [dsh-device-automation Bundle](../../packages/device/device-automation/README.md) composes those roles. Android and iOS Providers can implement the same Provider interface without changing browser requests. The [Provider-seam Agent Note](../../.agents/notes/implemented/architecture/2026-08-24-device-automation-provider-seam.md) records the role split.
+The device automation capability separates the platform-neutral runtime ([dsh-device-automation-runtime](../../packages/device/device-automation-runtime/README.md), `ctx.deviceAutomation`), platform Providers such as [HarmonyOS](../../packages/device/device-automation-harmonyos/README.md), and the browser [Files + Device Consumer](../../packages/client/ui-device-automation/README.md). The installable [dsh-device-automation Bundle](../../packages/device/device-automation/README.md) composes those roles and registers its packaged `automation` preset as a read-only system root. Android and iOS Providers can implement the same Provider interface without changing browser requests. The [Provider-seam Agent Note](../../.agents/notes/implemented/architecture/2026-08-24-device-automation-provider-seam.md) records the role split.
 
 Source: [`packages/device/device-automation-runtime/src/index.ts`](../../packages/device/device-automation-runtime/src/index.ts)
 
@@ -70,7 +70,7 @@ Each registration has a unique non-empty name and follows its Cordis effect scop
 
 The runtime registers `/device-automation` through the Connection service with `trusted-host` authority. The channel exposes Provider discovery, screenshot capture, relative taps, directory listing, and bounded UTF-8 file reads. Browser requests cannot name an arbitrary workspace: file operations derive the live session working directory from `SessionHeader.cwd`, resolve paths through `ctx.fs`, and reject targets whose resolved path lies outside that directory. Directory and file size limits are deployment configuration.
 
-Screenshot replies carry complete PNG bytes and a Host-selected delay before the next request. The Consumer waits until the replacement image decodes before discarding the preceding frame and stops polling while its Device view or browser document is hidden.
+Screenshot replies carry complete PNG bytes and a Host-selected delay before the next request. The Consumer exists only while the current Session records the `automation` agent preset, names that mode in the sidebar title, waits until the replacement image decodes before discarding the preceding frame, and stops polling while its Device tab, standalone right sidebar, or browser document is hidden.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 

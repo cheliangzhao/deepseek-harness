@@ -461,6 +461,15 @@ composeFrom(agentCtx: Context, parentCtx: Context): string | undefined
 composedPreset(agentCtx: Context): string | undefined
 
 /**
+ * Add a read-only preset directory supplied by an installed Bundle.
+ * Contributions follow configured roots and precede the derived user root;
+ * registration order resolves duplicate ids between Bundles.
+ * @param path - directory containing one subdirectory per bundled preset.
+ * @returns an idempotent disposer that removes this contribution.
+ */
+registerSystemRoot(path: string): () => void
+
+/**
  * Read one preset's composition text.
  * @param id - the preset id.
  * @returns the composition exactly as stored.

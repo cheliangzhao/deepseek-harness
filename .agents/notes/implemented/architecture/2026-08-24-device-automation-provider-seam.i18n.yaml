@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-24-device-automation-provider-seam.md
-2026-08-24-device-automation-provider-seam.md: a95078e6fec721f6297ef9e4b2596fae3d47ea87
-2026-08-24-device-automation-provider-seam.zh.md: debfbdd9b0063081a862f096eaf61b50ab5b7798
+2026-08-24-device-automation-provider-seam.md: edc2d44bef962a252e07cc180337213329686f15
+2026-08-24-device-automation-provider-seam.zh.md: 9774551a858299d3d6bc74e7b48e06f5b5496fdb
