@@ -12,10 +12,10 @@ Status: implemented
 
 设备自动化由四个包组合：
 
-- `@cheliangzhao/dsh-device-automation` 是可安装 Bundle 与发布单元。`@cheliangzhao/*` 包不属于仓库的 `@deepseek-ai/*` release family，并独立发布。
-- `@cheliangzhao/dsh-device-automation-runtime` 拥有 `ctx.deviceAutomation`、具名 Provider 选择、受信浏览器 RPC，以及通过 `ctx.fs` 实现的只读工作区访问。
-- `@cheliangzhao/dsh-device-automation-harmonyos` 注册 `harmonyos` Provider，并是唯一理解 DevEco CLI argv 的包。
-- `@cheliangzhao/dsh-client-ui-device-automation` 是浏览器 Consumer，仅暴露“文件”与“设备”。
+- `@fadinglight/dsh-device-automation` 是可安装 Bundle 与发布单元。`@fadinglight/*` 包不属于仓库的 `@deepseek-ai/*` release family，并独立发布。
+- `@fadinglight/dsh-device-automation-runtime` 拥有 `ctx.deviceAutomation`、具名 Provider 选择、受信浏览器 RPC，以及通过 `ctx.fs` 实现的只读工作区访问。
+- `@fadinglight/dsh-device-automation-harmonyos` 注册 `harmonyos` Provider，并是唯一理解 DevEco CLI argv 的包。
+- `@fadinglight/dsh-client-ui-device-automation` 是浏览器 Consumer，通过公开 `conversation.view` slot 仅暴露“文件”与“设备”。
 
 运行时依次选择请求指定的 Provider、已配置的默认 Provider，以及唯一已注册 Provider。存在多个 Provider 但没有明确选择时会明确失败。当前 Provider 接口仅包含截图与相对坐标点击，因为只有它们拥有当前 Consumer；手势、文本输入、旋转与设备选择只会在出现具体跨平台需求时添加。
 
@@ -25,7 +25,7 @@ HarmonyOS Provider 通过一个生命周期拥有的操作尾部串行执行截�
 
 ## 与 Better Sidebar 的关系
 
-“文件 + 设备”工作区遵循 Better Sidebar 的紧凑页签工作区思路，但不使用其实现或依赖图。没有复制 Better Sidebar 源码。目录导航与文件查看使用 Harness 服务与 slot，从而保留会话工作区权威、client 生命周期、本地化与仓库信任栅栏。
+“文件 + 设备”工作区遵循 Better Sidebar 的紧凑页签工作区思路，但不使用其实现或依赖图。没有复制 Better Sidebar 源码。UI 注册一个普通 `conversation.view` entry，不扩展 Web 应用或 `ui-conversation` 包。目录导航与文件查看使用 Harness 服务与 slot，从而保留会话工作区权威、client 生命周期、本地化与仓库信任栅栏。
 
 ## 已考虑的替代方案
 
@@ -33,6 +33,7 @@ HarmonyOS Provider 通过一个生命周期拥有的操作尾部串行执行截�
 - **保留一个 HarmonyOS 专用 client 并添加平台条件。** 每个新平台都会改变浏览器包并复制选择规则。
 - **保留精确 HTTP 截图路由。** 这需要第二次应用信任栅栏，并将一项功能分散到两种浏览器传输上。
 - **直接向浏览器暴露模型的文件系统工具。** 工具调用携带模型策略与 transcript 语义；人类只读浏览是 `ctx.fs` 的独立 Consumer。
+- **向 `ui-conversation` 添加专用详情栏注册表。** 独立发布的插件安装到不含该私有服务的 DSH 版本后会永久等待；现有 conversation-view slot 已经拥有可选的完整会话视图。
 
 ## 结果
 

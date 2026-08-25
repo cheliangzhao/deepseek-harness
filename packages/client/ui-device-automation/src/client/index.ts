@@ -1,13 +1,10 @@
-/** Automation-session Files + Device details workspace and header entry point. */
+/** Files + Device workspace contributed as a standard conversation view. */
 import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
-import { createElement } from 'react'
 import { DeviceAutomationPanel } from './panel.tsx'
 import type { DirectoryListing, OpenedFile, ScreenshotFrame } from './panel.tsx'
-import { DeviceAutomationAction } from './DevicePreviewAction.tsx'
 import { en, zh, type DeviceAutomationKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -18,11 +15,11 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 const NS = 'deviceAutomation'
 const CHANNEL = '/device-automation'
-export const inject = ['slots', 'locale', 'layout', 'detailsPanels', 'sessions', 'connection']
+export const inject = ['slots', 'locale', 'connection']
 
 /**
- * Register the automation workspace and its session-header shortcut.
- * @param ctx - client context carrying slots, session state, and Connection.
+ * Register the automation workspace in the conversation view ring.
+ * @param ctx - client context carrying slots, locale, and Connection.
  * @returns nothing; registrations are effect-owned.
  */
 export function apply(ctx: ClientContext): void {
@@ -63,37 +60,14 @@ export function apply(ctx: ClientContext): void {
       content: stringValue(record.content, 'content'),
     }
   }
-  ctx.effect(() => {
-    const removePanel = ctx.detailsPanels.register({
-      id: 'device-automation',
-      render: sessionId => createElement(DeviceAutomationPanel, {
-        key: sessionId, sessionId, t, capture, tap, list, read,
-      }),
-      visible: sessionId => isAutomationSession(ctx, sessionId),
-    })
-    const removeAction = ctx.slots.register({
-      name: 'conversation.session.header.utilities',
-      id: 'device-automation',
-      order: 20,
-      locale: NS,
-      inject: () => ({
-        toggle: () => {
-          if (ctx.detailsPanels.active()?.id === 'device-automation') {
-            ctx.detailsPanels.open('tool')
-            ctx.layout.closeDetails()
-            return
-          }
-          ctx.detailsPanels.open('device-automation')
-          ctx.layout.openDetails()
-        },
-      }),
-    }, DeviceAutomationAction)
-    return () => { removeAction(); removePanel() }
-  }, 'ui-device-automation: details workspace')
-}
-
-function isAutomationSession(ctx: ClientContext, sessionId: SessionId): boolean {
-  return ctx.sessions.list.getSnapshot().byId[sessionId]?.agentPreset === 'automation'
+  ctx.slots.inject('conversation.view', () => ctx.slots.register({
+    name: 'conversation.view',
+    id: 'device-automation',
+    order: 20,
+    locale: NS,
+    label: () => t('open'),
+    inject: (_sessionId: SessionId) => ({ capture, tap, list, read }),
+  }, DeviceAutomationPanel))
 }
 
 async function call(

@@ -35,7 +35,6 @@ import { queueDockEntry } from './queue/QueueDock.tsx'
 import { ConversationRoot } from './skeleton/ConversationRoot.tsx'
 import { ConversationSession, ConversationSessionHeader } from './skeleton/ConversationSession.tsx'
 import { DetailsPanel } from './skeleton/DetailsPanel.tsx'
-import { DetailsPanelRegistry } from './details-panel-registry.ts'
 import { en, NS, zh, type ConversationKey } from './locales.ts'
 import { registerConversationNodes } from './conversation-nodes/register.ts'
 import { registerChatNodeRenderers } from './chat/register-node-renderers.ts'
@@ -131,8 +130,6 @@ export function apply(ctx: Context): void {
 
   // Apply-time construction keeps store identity bound to this fiber.
   const chatStore = createChatStore()
-  const detailsPanels = new DetailsPanelRegistry()
-  ctx.effect(() => ctx.reflect.provide('detailsPanels', detailsPanels), 'ui-conversation: details-panel registry')
   const submissionPolicy = new ComposerSubmissionPolicy(
     ctx.settingsScope.bind<ConversationSettings>({ namespace: CONVERSATION_SETTINGS_NAMESPACE }),
   )
@@ -453,9 +450,8 @@ export function apply(ctx: Context): void {
       'conversation.details.tool': { kind: 'single', scope: 'session' },
     },
     store: chatStore,
-    inject: (): DetailsInjected & { detailsPanels: DetailsPanelRegistry } => ({
+    inject: (): DetailsInjected => ({
       closeDetails: () => { layout.closeDetails() },
-      detailsPanels,
     }),
   }, DetailsPanel)
 

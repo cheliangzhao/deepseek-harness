@@ -12,10 +12,10 @@ The first browser device preview directly combined HarmonyOS DevEco CLI commands
 
 Device automation is a four-package composition:
 
-- `@cheliangzhao/dsh-device-automation` is the installable Bundle and publishing unit. The `@cheliangzhao/*` packages are excluded from the repository's `@deepseek-ai/*` release family and publish independently.
-- `@cheliangzhao/dsh-device-automation-runtime` owns `ctx.deviceAutomation`, named Provider selection, trusted browser RPC, and read-only workspace access through `ctx.fs`.
-- `@cheliangzhao/dsh-device-automation-harmonyos` registers the `harmonyos` Provider and is the only package that knows DevEco CLI argv.
-- `@cheliangzhao/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device.
+- `@fadinglight/dsh-device-automation` is the installable Bundle and publishing unit. The `@fadinglight/*` packages are excluded from the repository's `@deepseek-ai/*` release family and publish independently.
+- `@fadinglight/dsh-device-automation-runtime` owns `ctx.deviceAutomation`, named Provider selection, trusted browser RPC, and read-only workspace access through `ctx.fs`.
+- `@fadinglight/dsh-device-automation-harmonyos` registers the `harmonyos` Provider and is the only package that knows DevEco CLI argv.
+- `@fadinglight/dsh-client-ui-device-automation` is the browser Consumer and exposes only Files and Device through the public `conversation.view` slot.
 
 The runtime selects a request-named Provider, then the configured default, then a sole registered Provider. Multiple Providers without an explicit choice fail loud. The current Provider interface includes only screenshot and relative tap because those are the operations with current Consumers; gestures, text entry, rotation, and device selection are added only with a concrete cross-platform requirement.
 
@@ -25,7 +25,7 @@ The HarmonyOS Provider serializes screenshots and taps through one lifecycle-own
 
 ## Better Sidebar relationship
 
-The Files + Device workspace follows Better Sidebar's compact tab-workspace idea, not its implementation or dependency graph. No Better Sidebar source is copied. Directory navigation and file viewing use Harness services and slots, which preserves session workspace authority, client lifecycle, localization, and the repository's trust fence.
+The Files + Device workspace follows Better Sidebar's compact tab-workspace idea, not its implementation or dependency graph. No Better Sidebar source is copied. The UI registers one ordinary `conversation.view` entry and does not extend the Web application or `ui-conversation` packages. Directory navigation and file viewing use Harness services and slots, which preserves session workspace authority, client lifecycle, localization, and the repository's trust fence.
 
 ## Alternatives considered
 
@@ -33,6 +33,7 @@ The Files + Device workspace follows Better Sidebar's compact tab-workspace idea
 - **Keep one HarmonyOS-specific client and add platform conditionals.** Every new platform would change the browser package and duplicate selection rules.
 - **Keep screenshots on an exact HTTP route.** This needs a second trust-fence application and splits one feature across two browser transports.
 - **Expose the model's filesystem tool directly to the browser.** Tool calls carry model policy and transcript semantics; human read-only browsing is a separate Consumer of `ctx.fs`.
+- **Add a dedicated details-column registry to `ui-conversation`.** An independently published plugin would then wait forever when installed into a DSH release without that private service; the existing conversation-view slot already owns optional full-session views.
 
 ## Consequences
 

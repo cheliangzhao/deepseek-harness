@@ -95,9 +95,9 @@ describe('web e2e: device automation workspace', () => {
     const sessionRow = page.locator('[role="treeitem"]').nth(1)
     await sessionRow.waitFor({ timeout: 10_000 })
     await sessionRow.click()
-    const deviceButton = page.getByRole('button', { name: 'Device automation', exact: true })
-    await deviceButton.waitFor({ timeout: 15_000 })
-    await deviceButton.click()
+    const deviceTab = page.getByRole('tab', { name: 'Device automation', exact: true })
+    await deviceTab.waitFor({ timeout: 15_000 })
+    await deviceTab.click()
     const image = page.getByRole('img', { name: 'Current automated device screen', exact: true })
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth), {
       timeout: 15_000,

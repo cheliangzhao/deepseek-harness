@@ -6,12 +6,11 @@
 // share the store seat exists for) and derives the call material from the
 // session snapshot — no data of its own.
 
-import { Fragment, useSyncExternalStore } from 'react'
+import { Fragment } from 'react'
 import { CodeBlock } from '@deepseek-ai/dsh-client-ui-primitives'
 import { shallowEqual } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConversationSnapshot, RunningToolCall, ToolCallBlock, ToolResultNode } from '@deepseek-ai/dsh-client-runtime/client'
 import type { DetailsSlotProps } from '../contract/slots.ts'
-import { DetailsPanelRegistry, type IDetailsPanels } from '../details-panel-registry.ts'
 import { findToolCall } from '../chat/tool-node-reader.ts'
 import css from './DetailsPanel.module.css'
 
@@ -64,13 +63,7 @@ function rawResultText(block: ToolCallBlock): string {
   return parts.join('\n')
 }
 
-const EMPTY_DETAILS_PANELS = new DetailsPanelRegistry()
-
-export function DetailsPanel({
-  useSession, useSessions, sessionId, useStore, renderSlot, closeDetails, t, detailsPanels: injectedPanels,
-}: DetailsPanelProps & { detailsPanels?: IDetailsPanels }) {
-  const detailsPanels = injectedPanels ?? EMPTY_DETAILS_PANELS
-  useSyncExternalStore(detailsPanels.subscribe.bind(detailsPanels), detailsPanels.version.bind(detailsPanels))
+export function DetailsPanel({ useSession, useSessions, sessionId, useStore, renderSlot, closeDetails, t }: DetailsPanelProps) {
   const selection = useStore(s => s.selection)
   // Session workspace root: an omitted or relative terminal cwd resolves
   // against it, which the pure presenter cannot see.
@@ -82,10 +75,6 @@ export function DetailsPanel({
     s => (callId === undefined ? null : materialFor(s, callId)),
     (a, b) => shallowEqual(a, b))
 
-  const optional = detailsPanels.active()
-  if (optional !== undefined && optional.visible?.(sessionId) !== false) {
-    return <div className={css.frameless}>{optional.render(sessionId)}</div>
-  }
   return (
     <div className={css.root}>
       <div className={css.header}>
@@ -94,7 +83,7 @@ export function DetailsPanel({
         </div>
         <button
           type="button" className={css.close} aria-label={t('details.close')}
-          onClick={() => { detailsPanels.open('tool'); closeDetails() }}
+          onClick={() => { closeDetails() }}
         >
           <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -104,7 +93,7 @@ export function DetailsPanel({
       <div className={css.body}>
         {selection === null || callId === undefined
           ? <div className={css.empty}>{t('details.empty')}</div>
-          : material == null
+          : material === null
             ? <div className={css.empty}>{t('details.notInWindow')}</div>
             : (
               <>
@@ -117,9 +106,9 @@ export function DetailsPanel({
                 <section className={css.section}>
                   <div className={css.sectionLabel}>{t('details.output')}</div>
                   {/* Keyed by the selected call: the body owns per-call view
-                    state (the terminal card's expand and copy), which React
-                    would otherwise carry into the next selection because the
-                    panel does not unmount between calls. */}
+                      state (the terminal card's expand and copy), which React
+                      would otherwise carry into the next selection because the
+                      panel does not unmount between calls. */}
                   <Fragment key={callId}>
                     {renderSlot('conversation.details.tool', { block: material.block, cwd: sessionCwd }, {
                       fallback: 'kind' in material.block
