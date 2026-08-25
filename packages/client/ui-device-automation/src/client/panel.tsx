@@ -17,6 +17,26 @@ export interface ScreenshotFrame {
   readonly refreshAfterMs: number
 }
 
+/** Provider preparation state returned by the trusted Host. */
+export type PreparationResult =
+  | { readonly status: 'ready' }
+  | {
+    readonly status: 'action-required'
+    readonly action: 'install-cli'
+    readonly command: string
+    readonly url: string
+  }
+
+/** Point-in-time Host preparation progress used while `prepare` is pending. */
+export type PreparationProgress =
+  | { readonly phase: 'idle' | 'checking-cli' | 'ready' | 'failed' | 'action-required' }
+  | {
+    readonly phase: 'syncing-skills'
+    readonly completed: number
+    readonly total: number
+    readonly skill: string
+  }
+
 export interface FileEntry {
   readonly name: string
   readonly path: string
@@ -38,6 +58,14 @@ export interface OpenedFile {
 }
 
 type Translate = (key: DeviceAutomationKey) => string
+const HARMONY_READY_DURATION_MS = 1_200
+
+type PreparationState =
+  | { phase: 'checking'; progress?: Extract<PreparationProgress, { phase: 'syncing-skills' }> }
+  | { phase: 'celebrating' }
+  | { phase: 'ready' }
+  | { phase: 'action-required'; command: string; url: string }
+  | { phase: 'failed' }
 
 /**
  * Convert a browser click to coordinates within the contained device image.
@@ -321,15 +349,68 @@ function TreeDirectory({ listing, depth, expanded, loading, directories, errors,
  * @param props - session identity and injected operations.
  * @returns the two-tab automation workspace.
  */
-export function DeviceAutomationPanel({ sessionId, t, capture, tap, list, read }: {
+export function DeviceAutomationPanel({ sessionId, t, prepare, preparationProgress, capture, tap, list, read }: {
   sessionId: string
   t: Translate
+  prepare: (signal: AbortSignal) => Promise<PreparationResult>
+  preparationProgress: (signal: AbortSignal) => Promise<PreparationProgress>
   capture: (signal: AbortSignal) => Promise<ScreenshotFrame>
   tap: (position: { x: number; y: number }) => Promise<void>
   list: (sessionId: string, path: string | undefined, signal: AbortSignal) => Promise<DirectoryListing>
   read: (sessionId: string, path: string, signal: AbortSignal) => Promise<OpenedFile>
 }) {
   const [tab, setTab] = useState<'files' | 'device'>('device')
+  const [attempt, setAttempt] = useState(0)
+  const [preparation, setPreparation] = useState<PreparationState>({ phase: 'checking' })
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let settled = false
+    let pollTimer: number | undefined
+    setPreparation({ phase: 'checking' })
+    const poll = async (): Promise<void> => {
+      try {
+        const progress = await preparationProgress(controller.signal)
+        if (controller.signal.aborted || settled) return
+        if (progress.phase === 'syncing-skills') {
+          setPreparation({ phase: 'checking', progress })
+        }
+      } catch {
+        // Progress is advisory; the prepare request owns readiness and failure reporting.
+        if (controller.signal.aborted || settled) return
+      }
+      pollTimer = window.setTimeout(() => { void poll() }, 200)
+    }
+    void poll()
+    void prepare(controller.signal).then((result) => {
+      if (controller.signal.aborted) return
+      settled = true
+      if (pollTimer !== undefined) window.clearTimeout(pollTimer)
+      setPreparation(result.status === 'ready'
+        ? { phase: 'celebrating' }
+        : { phase: 'action-required', command: result.command, url: result.url })
+    }, () => {
+      if (!controller.signal.aborted) {
+        settled = true
+        if (pollTimer !== undefined) window.clearTimeout(pollTimer)
+        setPreparation({ phase: 'failed' })
+      }
+    })
+    return () => {
+      settled = true
+      if (pollTimer !== undefined) window.clearTimeout(pollTimer)
+      controller.abort()
+    }
+  }, [attempt, prepare, preparationProgress])
+
+  useEffect(() => {
+    if (preparation.phase !== 'celebrating') return
+    const timer = window.setTimeout(() => {
+      setPreparation({ phase: 'ready' })
+    }, HARMONY_READY_DURATION_MS)
+    return () => { window.clearTimeout(timer) }
+  }, [preparation.phase])
+
   return <div className={css.workspace}>
     <header className={css.workspaceHeader}>
       <div className={css.workspaceTitle}>
@@ -349,9 +430,86 @@ export function DeviceAutomationPanel({ sessionId, t, capture, tap, list, read }
       </nav>
     </header>
     <div className={css.workspaceBody}>
-      {tab === 'files'
-        ? <FilesPanel sessionId={sessionId} t={t} list={list} read={read} />
-        : <DevicePreviewPanel t={t} capture={capture} tap={tap} />}
+      {preparation.phase !== 'ready'
+        ? <PreparationPanel
+          preparation={preparation}
+          retry={() => { setAttempt(value => value + 1) }}
+          t={t}
+        />
+        : tab === 'files'
+          ? <FilesPanel sessionId={sessionId} t={t} list={list} read={read} />
+          : <DevicePreviewPanel t={t} capture={capture} tap={tap} />}
+    </div>
+  </div>
+}
+
+function PreparationPanel({ preparation, retry, t }: {
+  preparation:
+    | { phase: 'checking'; progress?: Extract<PreparationProgress, { phase: 'syncing-skills' }> }
+    | { phase: 'celebrating' }
+    | { phase: 'action-required'; command: string; url: string }
+    | { phase: 'failed' }
+  retry: () => void
+  t: Translate
+}) {
+  if (preparation.phase === 'checking') {
+    const progress = preparation.progress
+    return <div className={css.preparation} role="status">
+      <span className={css.preparationSpinner} aria-hidden="true" />
+      <strong>{t(progress === undefined ? 'checkingEnvironment' : 'syncingSkills')}</strong>
+      {progress === undefined
+        ? <span>{t('checkingCli')}</span>
+        : <>
+          <span>{t('skillProgress')
+            .replace('{completed}', String(progress.completed))
+            .replace('{total}', String(progress.total))}</span>
+          <span
+            className={css.preparationProgress}
+            role="progressbar"
+            aria-label={t('syncingSkills')}
+            aria-valuemin={0}
+            aria-valuemax={progress.total}
+            aria-valuenow={progress.completed}
+          >
+            <span style={{ width: `${progress.completed / progress.total * 100}%` }} />
+          </span>
+          <code className={css.preparationCurrentSkill}>{progress.skill}</code>
+        </>}
+    </div>
+  }
+  if (preparation.phase === 'celebrating') {
+    return <div
+      className={`${css.preparation} ${css.harmonyReady}`}
+      role="status"
+      aria-label={t('harmonyReady')}
+      data-dsh-harmony-ready
+    >
+      <span className={css.harmonyReadyMark} aria-hidden="true">
+        <span className={css.harmonyOrbit} />
+        <span className={`${css.harmonyOrbit} ${css.harmonyOrbitInner}`} />
+        <span className={css.harmonyReadyCore}><IconChecklistOutline14 size={20} /></span>
+      </span>
+      <strong>{t('harmonyReady')}</strong>
+      <span>{t('harmonyReadyHint')}</span>
+    </div>
+  }
+  if (preparation.phase === 'action-required') {
+    return <div className={css.preparation} role="alert">
+      <span className={css.emptyIcon} aria-hidden="true"><IconFollowsystemOutline16 size={24} /></span>
+      <strong>{t('cliMissing')}</strong>
+      <span>{t('cliMissingHint')}</span>
+      <code>{preparation.command}</code>
+      <div className={css.preparationActions}>
+        <a href={preparation.url} target="_blank" rel="noreferrer">{t('downloadCli')}</a>
+        <button type="button" onClick={retry}>{t('retry')}</button>
+      </div>
+    </div>
+  }
+  return <div className={css.preparation} role="alert">
+    <strong>{t('skillSyncFailed')}</strong>
+    <span>{t('skillSyncFailedHint')}</span>
+    <div className={css.preparationActions}>
+      <button type="button" onClick={retry}>{t('retry')}</button>
     </div>
   </div>
 }

@@ -7,6 +7,7 @@ import {
   FilesPanel,
   relativeTapPosition,
   type DirectoryListing,
+  type PreparationResult,
 } from '../src/client/panel.tsx'
 import { zh, type DeviceAutomationKey } from '../src/client/locales.ts'
 
@@ -14,6 +15,14 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers() })
 
 const t = (key: DeviceAutomationKey): string => zh[key]
 const frame = { source: 'data:image/png;base64,AAAA', refreshAfterMs: 100 }
+const idlePreparationProgress = async () => ({ phase: 'idle' as const })
+
+async function finishHarmonyReadyAnimation(): Promise<void> {
+  await screen.findByRole('status', { name: zh.harmonyReady })
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: zh.harmonyReady })).toBeNull()
+  }, { timeout: 2_000 })
+}
 
 describe('DevicePreviewPanel', () => {
   it('keeps polling after a failed capture and shows a recovered frame', async () => {
@@ -286,11 +295,113 @@ describe('DeviceAutomationPanel', () => {
   it('mounts only the selected Files or Device surface', async () => {
     const capture = vi.fn(async () => frame)
     const list = vi.fn(async () => ({ cwd: '/repo', path: '/repo', entries: [], truncated: false }))
-    render(<DeviceAutomationPanel sessionId="s1" t={t} capture={capture} tap={vi.fn()} list={list} read={vi.fn()} />)
+    render(<DeviceAutomationPanel sessionId="s1" t={t} prepare={vi.fn(async () => ({ status: 'ready' as const }))} preparationProgress={idlePreparationProgress} capture={capture} tap={vi.fn()} list={list} read={vi.fn()} />)
     expect(screen.getByText('自动化测试模式')).toBeTruthy()
+    await screen.findByText(zh.harmonyReady)
+    expect(capture).not.toHaveBeenCalled()
+    await finishHarmonyReadyAnimation()
+    await waitFor(() => { expect(capture).toHaveBeenCalledOnce() })
     await screen.findByRole('img', { name: zh.imageAlt })
     fireEvent.click(screen.getByRole('button', { name: zh.files }))
     await screen.findByText(zh.emptyDirectory)
     expect(screen.queryByRole('img', { name: zh.imageAlt })).toBeNull()
+  })
+
+  it('blocks device polling until DevEco CLI is installed and skills synchronize', async () => {
+    const capture = vi.fn(async () => frame)
+    const prepare = vi.fn()
+      .mockResolvedValueOnce({
+        status: 'action-required', action: 'install-cli',
+        command: 'npm install --global @deveco/deveco-cli',
+        url: 'https://www.npmjs.com/package/@deveco/deveco-cli',
+      })
+      .mockResolvedValueOnce({ status: 'ready' })
+    render(<DeviceAutomationPanel
+      sessionId="s1"
+      t={t}
+      prepare={prepare}
+      preparationProgress={idlePreparationProgress}
+      capture={capture}
+      tap={vi.fn()}
+      list={vi.fn()}
+      read={vi.fn()}
+    />)
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain(zh.cliMissing)
+    expect(screen.getByText('npm install --global @deveco/deveco-cli')).toBeTruthy()
+    expect(screen.getByRole('link', { name: zh.downloadCli }).getAttribute('href'))
+      .toBe('https://www.npmjs.com/package/@deveco/deveco-cli')
+    expect(capture).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.retry }))
+    await finishHarmonyReadyAnimation()
+    await screen.findByRole('img', { name: zh.imageAlt })
+    expect(prepare).toHaveBeenCalledTimes(2)
+  })
+
+  it('offers a retry after skill synchronization fails', async () => {
+    const prepare = vi.fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ status: 'ready' })
+    render(<DeviceAutomationPanel
+      sessionId="s1"
+      t={t}
+      prepare={prepare}
+      preparationProgress={idlePreparationProgress}
+      capture={vi.fn(async () => frame)}
+      tap={vi.fn()}
+      list={vi.fn()}
+      read={vi.fn()}
+    />)
+    expect((await screen.findByRole('alert')).textContent).toContain(zh.skillSyncFailed)
+    fireEvent.click(screen.getByRole('button', { name: zh.retry }))
+    await finishHarmonyReadyAnimation()
+    await screen.findByRole('img', { name: zh.imageAlt })
+  })
+
+  it('retries an interrupted skill synchronization automatically on the next mount', async () => {
+    const prepare = vi.fn()
+      .mockRejectedValueOnce(new Error('download interrupted'))
+      .mockResolvedValueOnce({ status: 'ready' })
+    const props = {
+      sessionId: 's1', t, prepare, preparationProgress: idlePreparationProgress,
+      capture: vi.fn(async () => frame), tap: vi.fn(), list: vi.fn(), read: vi.fn(),
+    }
+    const first = render(<DeviceAutomationPanel {...props} />)
+    expect((await screen.findByRole('alert')).textContent).toContain(zh.skillSyncFailed)
+    first.unmount()
+
+    render(<DeviceAutomationPanel {...props} />)
+    await screen.findByRole('status', { name: zh.harmonyReady })
+    expect(prepare).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows the current skill synchronization progress below the spinner', async () => {
+    let finish: (() => void) | undefined
+    const prepare = vi.fn(() => new Promise<PreparationResult>((resolve) => {
+      finish = () => { resolve({ status: 'ready' }) }
+    }))
+    render(<DeviceAutomationPanel
+      sessionId="s1"
+      t={t}
+      prepare={prepare}
+      preparationProgress={vi.fn(async () => ({
+        phase: 'syncing-skills' as const,
+        completed: 3,
+        total: 10,
+        skill: 'hmos-jscrash-analysis',
+      }))}
+      capture={vi.fn(async () => frame)}
+      tap={vi.fn()}
+      list={vi.fn()}
+      read={vi.fn()}
+    />)
+    const bar = await screen.findByRole('progressbar', { name: zh.syncingSkills })
+    expect(bar.getAttribute('aria-valuenow')).toBe('3')
+    expect(screen.getByText('已完成 3/10')).toBeTruthy()
+    expect(screen.getByText('hmos-jscrash-analysis')).toBeTruthy()
+    await act(async () => { finish?.(); await Promise.resolve() })
+    await finishHarmonyReadyAnimation()
+    await screen.findByRole('img', { name: zh.imageAlt })
   })
 })

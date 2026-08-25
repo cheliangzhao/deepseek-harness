@@ -21,13 +21,13 @@ Status: implemented
 
 所有浏览器操作使用同一个 trusted-host Connection RPC 通道。截图以受大小限制的 base64 PNG 数据经该 JSON 载体传递，因此该功能不拥有精确 HTTP 图片路由，并继承 Connection 的 Host、Origin、Fetch Metadata 与 JSON 媒体类型信任栅栏。文件请求携带在线会话 id 与候选路径。运行时通过 `ctx.fs` 解析会话根与候选路径，在符号链接解析后检查 Provider 拥有的包含关系，并仅返回直接目录元数据或受大小限制的严格 UTF-8 文件。
 
-HarmonyOS Provider 通过一个生命周期拥有的操作尾部串行执行截图与点击。销毁会撤销新请求准入、中止正在执行的命令、阻止排队工作启动、等待尾部停稳，并删除临时目录。浏览器仅在选中“设备”且文档可见时轮询；每个完成的截图响应会下发下一次延迟，随附 Bundle 将其配置为 100 ms。
+HarmonyOS Provider 会在首次收到浏览器准备请求时解析 `devecocli`。缺失时返回安装操作；可用时启动一次由 Provider 拥有的同步，把该模式的测试及故障或性能分析 skill 安装到 `$DSH_HOME/device-automation/skills`。每条命令开始前，Provider 会用已完成数量、总数与当前 Skill 替换一份不可变进度快照。浏览器在等待准备期间读取该快照，但不会启动或拥有同步操作。并发请求共用该操作，Provider 生命周期内会缓存就绪结果，失败的操作会被丢弃。后续挂载或进程启动会自动发出新的准备请求；强制添加是幂等操作，因此下载中断后会复用已部分填充的目录，并且无需浏览器确认。Provider 另用一个生命周期拥有的操作尾部串行执行截图与点击。销毁会撤销新请求准入、中止正在执行的准备与设备命令、阻止排队工作启动、等待两个操作所有者停稳，并删除临时目录。浏览器仅在准备成功、选中“设备”且文档可见时轮询；每个完成的截图响应会下发下一次延迟，随附 Bundle 将其配置为 100 ms。
 
 ## 与 Better Sidebar 的关系
 
-“文件 + 设备”工作区独立应用 Better Sidebar 的布局方式，不使用其软件包或源码。client 向 `document.body` 添加由 effect 拥有的 React Portal，并订阅权威的 `ctx.sessions.list` 选择。仅当所选 Session 记录了 `automation` preset 时，它才渲染侧栏，在侧栏标题中显示该模式，并写入包专用 CSS 宽度变量，让 `#root` 在面板展开时让出空间。选择其他任何模式都会卸载工作区、停止截图轮询并移除布局贡献。销毁会卸载 React Root、移除 Portal、恢复布局变量并结束 Session 订阅。目录导航与文件查看继续使用 Harness 服务，从而保留会话工作区权威、本地化与仓库信任栅栏。
+“文件 + 设备”工作区独立应用 Better Sidebar 的布局方式，不使用其软件包或源码。client 向 `document.body` 添加由 effect 拥有的 React Portal，并订阅权威的 `ctx.sessions.list` 选择。仅当所选 Session 记录了 `automation` preset 时，它才渲染侧栏，在侧栏标题中显示该模式，并写入包专用 CSS 宽度变量，让 `#root` 在面板展开时让出空间。准备成功后，工作区会先显示一次短暂的鸿蒙就绪过渡；启用减少动态效果的客户端会保留就绪消息，但跳过元素运动。选择其他任何模式都会卸载工作区、停止截图轮询并移除布局贡献。销毁会卸载 React Root、移除 Portal、恢复布局变量并结束 Session 订阅。目录导航与文件查看继续使用 Harness 服务，从而保留会话工作区权威、本地化与仓库信任栅栏。
 
-聚合包携带 `presets/automation`，并通过 `AgentPresets.registerSystemRoot()` 注册其包内目录。该贡献采用 `system` 信任并跟随聚合插件的 effect 生命周期，因此卸载与 HMR 会让该模式从下一次 roster 读取中消失，而无需把文件复制到用户根目录。聚合包依赖 preset 中具名的 HarmonyOS 工具；宿主安装提供 preset 的其他标准行。
+聚合包携带 `presets/automation`，并通过 `AgentPresets.registerSystemRoot()` 注册其包内目录。该贡献采用 `system` 信任并跟随聚合插件的 effect 生命周期，因此卸载与 HMR 会让该模式从下一次 roster 读取中消失，而无需把文件复制到用户根目录。其 skill 文件系统会同时扫描随包 DevEco CLI 指导与 Provider 拥有的同步目录。聚合包依赖 preset 中具名的 HarmonyOS 工具；宿主安装提供 preset 的其他标准行。
 
 ## 已考虑的替代方案
 
@@ -39,9 +39,10 @@ HarmonyOS Provider 通过一个生命周期拥有的操作尾部串行执行截�
 - **为所有 agent preset 显示侧栏。** 设备控制会出现在自动化工作流之外，可见的“设备”页签还可能在无关会话中持续轮询。
 - **在 Web roster 中配置 Bundle preset 路径。** Profile 配置无法可移植地推导已安装 Bundle 的目录，还会让 Web preset 与插件包布局耦合。
 - **安装时把 preset 复制到用户根目录。** 安装过程会修改用户拥有的状态、赋予错误的信任与生命周期所有权，并使升级和移除失去唯一权威来源。
+- **通过 npm `postinstall` 脚本下载 HarmonyOS skills。** 软件包安装会依赖环境中的 DevEco CLI、网络访问与启用的生命周期脚本，还会在完整性校验后静默改变包内容。首次使用时同步可以在所属 UI 中报告缺失的前置条件与失败。
 
 ## 结果
 
 Android 和 iOS 可注册 Provider，无需改变浏览器 RPC 或 React 组件。可安装 Bundle 可以首先发布一个 HarmonyOS 组合，同时保持运行时的平台无关性。Web profile 加载该聚合 Bundle，而不是重复其内部行。聚合包提供自动化模式，preset 自身仅保留模型可见工具与 skill 指导。
 
-单元测试覆盖 Provider 选择、格式错误的 wire 输入、工作区包含关系、截图校验、相对点击映射、串行执行、可等待销毁、preset 根目录销毁、按模式限定的侧栏渲染与侧栏 HMR 清理。组装的无密钥 Web 场景启动随附 Loader 与浏览器 bundle，验证标准模式没有设备侧栏，解析并打开随包自动化模式，检查其侧栏标题，打开真实工作区文件，点击已渲染设备帧，观察精确的 `devecocli ui click` argv，并验证后续帧替换它。发布路径演练会打包聚合包及其内部包，将聚合包 tarball 安装到全新 DSH profile，验证已安装 preset 与 effect disposer，并通过已构建 CLI 输出组合树。
+单元测试覆盖 Provider 选择、格式错误的 wire 输入、工作区包含关系、CLI 缺失指引、单飞 Skill 同步与重试、截图校验、相对点击映射、串行执行、可等待销毁、preset 根目录销毁、按模式限定的侧栏渲染、准备 UI 与侧栏 HMR 清理。组装的无密钥 Web 场景启动随附 Loader 与浏览器 bundle，验证标准模式没有设备侧栏，解析并打开随包自动化模式，观察精确的 Skill 同步 argv，检查其侧栏标题，打开真实工作区文件，点击已渲染设备帧，观察精确的 `devecocli ui click` argv，并验证后续帧替换它。发布路径演练会打包聚合包及其内部包，将聚合包 tarball 安装到全新 DSH profile，验证已安装 preset 与 effect disposer，并通过已构建 CLI 输出组合树。

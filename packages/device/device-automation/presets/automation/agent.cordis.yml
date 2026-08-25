@@ -249,6 +249,7 @@
   config:
     customSkillDirs:
       - !!js "process.getBuiltinModule('node:url').fileURLToPath(new URL('skills/', baseUrl))"
+      - !!js "process.getBuiltinModule('node:path').resolve(process.env.DSH_HOME?.trim() || process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:os').homedir(), '.dsh'), 'device-automation', 'skills')"
 
 - id: tool-skill
   name: '@deepseek-ai/dsh-tool-skill'

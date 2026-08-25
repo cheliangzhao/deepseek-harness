@@ -3250,8 +3250,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type CredentialRef = Branded<\'CredentialRef\'>;',
   },
   {
+    name: 'DeviceAutomationPreparation',
+    declaration: 'export type DeviceAutomationPreparation = {\n    readonly status: \'ready\';\n} | {\n    readonly status: \'action-required\';\n    readonly action: \'install-cli\';\n    readonly command: string;\n    readonly url: string;\n};',
+  },
+  {
+    name: 'DeviceAutomationPreparationProgress',
+    declaration: 'export type DeviceAutomationPreparationProgress = {\n    readonly phase: \'idle\' | \'checking-cli\' | \'ready\' | \'failed\';\n} | {\n    readonly phase: \'syncing-skills\';\n    readonly completed: number;\n    readonly total: number;\n    readonly skill: string;\n} | {\n    readonly phase: \'action-required\';\n    readonly action: \'install-cli\';\n    readonly command: string;\n    readonly url: string;\n};',
+  },
+  {
     name: 'DeviceAutomationProvider',
-    declaration: 'export interface DeviceAutomationProvider {\n    readonly name: string;\n    readonly platform: string;\n    screenshot(signal: AbortSignal): Promise<DeviceScreenshot>;\n    tap(position: RelativeTapPosition, signal: AbortSignal): Promise<void>;\n}',
+    declaration: 'export interface DeviceAutomationProvider {\n    readonly name: string;\n    readonly platform: string;\n    preparationProgress(): DeviceAutomationPreparationProgress;\n    prepare(signal: AbortSignal): Promise<DeviceAutomationPreparation>;\n    screenshot(signal: AbortSignal): Promise<DeviceScreenshot>;\n    tap(position: RelativeTapPosition, signal: AbortSignal): Promise<void>;\n}',
   },
   {
     name: 'DeviceAutomationProviderName',

@@ -1,0 +1,7 @@
+- alert:
+  - strong: DevEco CLI is required
+  - text: Install DevEco CLI, then retry the environment check.
+  - code: npm install --global @deveco/deveco-cli
+  - link "Download DevEco CLI":
+    - /url: https://www.npmjs.com/package/@deveco/deveco-cli
+  - button "Retry"

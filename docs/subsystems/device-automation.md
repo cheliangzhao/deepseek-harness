@@ -49,6 +49,17 @@ interface DeviceAutomationProvider {
   /** Stable platform label shown by clients. */
   readonly platform: string
   /**
+   * Read the latest provider-owned preparation progress without starting work.
+   * @returns one immutable point-in-time progress value.
+   */
+  preparationProgress(): DeviceAutomationPreparationProgress
+  /**
+   * Prepare platform tooling before the browser starts device operations.
+   * @param signal - caller cancellation.
+   * @returns readiness or one user action that can make the provider ready.
+   */
+  prepare(signal: AbortSignal): Promise<DeviceAutomationPreparation>
+  /**
    * Capture the current authorized device screen.
    * @param signal - caller cancellation.
    * @returns one complete validated screenshot.
@@ -64,11 +75,11 @@ interface DeviceAutomationProvider {
 }
 ```
 
-Each registration has a unique non-empty name and follows its Cordis effect scope. A request selects its explicit Provider, then the configured default, then the sole registered Provider. Empty and ambiguous registries fail instead of selecting by registration order.
+Each registration has a unique non-empty name and follows its Cordis effect scope. A request selects its explicit Provider, then the configured default, then the sole registered Provider. Empty and ambiguous registries fail instead of selecting by registration order. Preparation returns readiness or one installation action; the progress snapshot reports its current phase without starting work, and device controls remain inactive until the Provider is ready.
 
 ## Trusted browser operations
 
-The runtime registers `/device-automation` through the Connection service with `trusted-host` authority. The channel exposes Provider discovery, screenshot capture, relative taps, directory listing, and bounded UTF-8 file reads. Browser requests cannot name an arbitrary workspace: file operations derive the live session working directory from `SessionHeader.cwd`, resolve paths through `ctx.fs`, and reject targets whose resolved path lies outside that directory. Directory and file size limits are deployment configuration.
+The runtime registers `/device-automation` through the Connection service with `trusted-host` authority. The channel exposes Provider discovery and preparation progress, screenshot capture, relative taps, directory listing, and bounded UTF-8 file reads. Browser requests cannot name an arbitrary workspace: file operations derive the live session working directory from `SessionHeader.cwd`, resolve paths through `ctx.fs`, and reject targets whose resolved path lies outside that directory. Directory and file size limits are deployment configuration.
 
 Screenshot replies carry complete PNG bytes and a Host-selected delay before the next request. The Consumer exists only while the current Session records the `automation` agent preset, names that mode in the sidebar title, waits until the replacement image decodes before discarding the preceding frame, and stops polling while its Device tab, standalone right sidebar, or browser document is hidden.
 

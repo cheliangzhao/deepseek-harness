@@ -1,4 +1,6 @@
-import { writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import type { DeviceAutomationProvider } from '@fadinglight/dsh-device-automation-runtime'
 import type { SubprocessHandle, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
@@ -7,11 +9,26 @@ import * as HarmonyProvider from '../src/index.ts'
 import { parsePngDimensions } from '../src/index.ts'
 
 const FIXTURE_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAGCAYAAADkOT91AAAATElEQVR4nBXIMQHAIAwAwUpDBAJ+RARDJDBEAkNE1Nu3ufGeQThIB+Xg9ZmEk3RSzo5FuEgX5erYhJt0U+6OQ3hID+XpuISX9FLePz4mrzppOSuH6AAAAABJRU5ErkJggg==', 'base64')
+const AUTOMATION_MODE_SKILLS = [
+  'hmos-local-test',
+  'hmos-instrument-test',
+  'hmos-cppcrash-analysis',
+  'hmos-jscrash-analysis',
+  'hmos-jsleak-analysis',
+  'hmos-memleak-analysis',
+  'hmos-native-memleak-analysis',
+  'hmos-fdleak-analysis',
+  'hmos-apifault-analysis',
+  'hmos-appfreeze-analysis',
+] as const
 const contexts: Context[] = []
+const homes: string[] = []
 
 afterEach(async () => {
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
   await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
+  for (const home of homes.splice(0)) rmSync(home, { recursive: true, force: true })
 })
 
 const reader = (text = '') => ({ readFrom: () => ({ text, nextOffset: Buffer.byteLength(text), lossy: false }) })
@@ -40,6 +57,7 @@ interface MountOptions {
   config?: HarmonyProvider.Config
   direct?: boolean
   collect?: boolean
+  resolveExecutable?: () => Promise<string>
 }
 
 async function mount(options: MountOptions = {}) {
@@ -51,7 +69,7 @@ async function mount(options: MountOptions = {}) {
     registerProvider: (candidate: DeviceAutomationProvider) => { provider = candidate; return () => { provider = undefined } },
   })
   ctx.provide('subprocess', {
-    resolveExecutable: vi.fn(async () => '/resolved/devecocli'),
+    resolveExecutable: options.resolveExecutable ?? vi.fn(async () => '/resolved/devecocli'),
     spawn: vi.fn((spec: SubprocessSpawnSpec) => {
       calls.push([...spec.argv])
       const done = options.onSpawn?.(spec) ?? Promise.resolve({ exitCode: 0 })
@@ -66,6 +84,84 @@ async function mount(options: MountOptions = {}) {
 }
 
 describe('HarmonyOS device provider', () => {
+  it('synchronizes the automation skills once before reporting ready', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
+    const { calls, provider } = await mount()
+    const signal = new AbortController().signal
+
+    expect(provider.preparationProgress()).toEqual({ phase: 'idle' })
+    await expect(Promise.all([provider.prepare(signal), provider.prepare(signal)]))
+      .resolves.toEqual([{ status: 'ready' }, { status: 'ready' }])
+    await expect(provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
+    expect(provider.preparationProgress()).toEqual({ phase: 'ready' })
+    expect(calls).toEqual(AUTOMATION_MODE_SKILLS.map(skill => [
+      '/fake/devecocli',
+      'skills',
+      'add',
+      '--skill',
+      skill,
+      '--path',
+      join(home, 'device-automation', 'skills'),
+      '--force',
+    ]))
+  })
+
+  it('reports the current skill while preparation is active', async () => {
+    let release: (() => void) | undefined
+    const first = new Promise<{ exitCode: number | null }>((resolve) => {
+      release = () => { resolve({ exitCode: 0 }) }
+    })
+    const { provider } = await mount({ onSpawn: async spec => (
+      spec.argv.includes('hmos-local-test') ? first : { exitCode: 0 }
+    ) })
+    const preparation = provider.prepare(new AbortController().signal)
+
+    await vi.waitFor(() => {
+      expect(provider.preparationProgress()).toEqual({
+        phase: 'syncing-skills', completed: 0, total: AUTOMATION_MODE_SKILLS.length,
+        skill: 'hmos-local-test',
+      })
+    })
+    release?.()
+    await expect(preparation).resolves.toEqual({ status: 'ready' })
+    expect(provider.preparationProgress()).toEqual({ phase: 'ready' })
+  })
+
+  it('asks the browser to install DevEco CLI and restarts an interrupted synchronization idempotently', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
+    const missing = await mount({
+      config: {},
+      resolveExecutable: vi.fn(async () => { throw new Error('not found') }),
+    })
+    await expect(missing.provider.prepare(new AbortController().signal)).resolves.toEqual({
+      status: 'action-required',
+      action: 'install-cli',
+      command: 'npm install --global @deveco/deveco-cli',
+      url: 'https://www.npmjs.com/package/@deveco/deveco-cli',
+    })
+
+    let interrupted = true
+    const retrying = await mount({ onSpawn: async (spec) => {
+      if (interrupted && spec.argv.includes('hmos-instrument-test')) {
+        interrupted = false
+        return { exitCode: 1 }
+      }
+      return { exitCode: 0 }
+    } })
+    await expect(retrying.provider.prepare(new AbortController().signal)).rejects.toThrow('could not synchronize')
+    expect(retrying.provider.preparationProgress()).toEqual({ phase: 'failed' })
+    await expect(retrying.provider.prepare(new AbortController().signal)).resolves.toEqual({ status: 'ready' })
+    expect(retrying.calls.map(call => call.at(4))).toEqual([
+      'hmos-local-test',
+      'hmos-instrument-test',
+      ...AUTOMATION_MODE_SKILLS,
+    ])
+  })
+
   it('captures a validated PNG and maps a relative tap to native pixels', async () => {
     const { calls, provider } = await mount({ onSpawn: async (spec) => {
       if (spec.argv[2] === 'screenshot') writeFileSync(screenshotPath(spec), FIXTURE_PNG)

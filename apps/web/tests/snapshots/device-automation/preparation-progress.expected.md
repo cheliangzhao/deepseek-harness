@@ -1,0 +1,5 @@
+- status:
+  - strong: Synchronizing HarmonyOS automation skills…
+  - text: 0 of 10 completed
+  - progressbar "Synchronizing HarmonyOS automation skills…"
+  - code: hmos-local-test

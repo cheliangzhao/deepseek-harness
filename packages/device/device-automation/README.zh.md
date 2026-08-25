@@ -10,11 +10,11 @@
 
 随包 patch 选择 `harmonyos`，下发 100 ms 的截图后刷新延迟，将打开文件限制为 1 MiB，并为每个目录最多返回 1000 个条目。后续 profile patch 可替换这些运行时值，并配置 HarmonyOS Provider 的可执行文件或设备序列号。
 
-随包 preset 携带 DevEco CLI skill，聚合包则依赖其组合中具名的 HarmonyOS UI 测试工具。发布路径演练会打包聚合包及其内部包，仅将聚合包 tarball 作为全新 DSH profile 的直接依赖安装，并验证已安装 patch、preset 文件、effect 拥有的根目录注册、运行时、HarmonyOS Provider 与浏览器 UI。
+随包 preset 携带 DevEco CLI skill，并扫描插件拥有的 `$DSH_HOME/device-automation/skills` 根目录。自动化工作区首次挂载时，HarmonyOS Provider 会检查 DevEco CLI，并在设备控制启动前把测试及故障或性能分析 skill 同步到该根目录。聚合包还依赖其组合中具名的 HarmonyOS UI 测试工具。发布路径演练会打包聚合包及其内部包，仅将聚合包 tarball 作为全新 DSH profile 的直接依赖安装，并验证已安装 patch、preset 文件、effect 拥有的根目录注册、运行时、HarmonyOS Provider 与浏览器 UI。
 
 ## 模型体验
 
-间接影响；随包 `automation` preset 自身的插件只会为选择该模式的会话注册 HarmonyOS 测试 persona、`devecocli` 工具与 DevEco CLI skill。
+间接影响；随包 `automation` preset 自身的插件只会为选择该模式的会话注册 HarmonyOS 测试 persona、`devecocli` 工具、随包 DevEco CLI skill，以及同步后的测试与诊断 skill 根目录。
 
 #### KV Cache 影响
 

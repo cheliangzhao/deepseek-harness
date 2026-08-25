@@ -1,0 +1,3 @@
+- status "HarmonyOS automation is ready":
+  - strong: HarmonyOS automation is ready
+  - text: Skills synchronized. Opening the device workspace…

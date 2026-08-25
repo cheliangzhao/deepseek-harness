@@ -9,9 +9,9 @@ Service Definition and Host Consumer for cross-platform device automation. `ctx.
 | `registerProvider(provider)` | Register one effect-scoped Provider with a unique non-empty name. |
 | `listProviders()` | Return provider name and platform descriptors in registration order. |
 
-Each Provider implements `screenshot(signal)` and `tap(position, signal)`. The runtime selects an explicit request Provider, then `defaultProvider`, then the only registered Provider. An ambiguous or empty registry fails loud.
+Each Provider implements `preparationProgress()`, `prepare(signal)`, `screenshot(signal)`, and `tap(position, signal)`. Preparation finishes platform setup or returns one structured user action before the browser enables device controls. The progress method returns the latest immutable Provider-owned phase and, during Skill synchronization, the completed count, total count, and current Skill without starting work. The runtime selects an explicit request Provider, then `defaultProvider`, then the only registered Provider. An ambiguous or empty registry fails loud.
 
-The trusted RPC channel exposes provider discovery, screenshot, tap, directory listing, and file reads. File operations resolve from a live session's `header.cwd` through `ctx.fs`, reject targets outside that root after provider-owned resolution, return only direct entries, and decode bounded files as strict UTF-8. Device images cross the JSON carrier as base64 PNG data; providers never expose their temporary paths.
+The trusted RPC channel exposes provider discovery, preparation and its progress, screenshot, tap, directory listing, and file reads. File operations resolve from a live session's `header.cwd` through `ctx.fs`, reject targets outside that root after provider-owned resolution, return only direct entries, and decode bounded files as strict UTF-8. Device images cross the JSON carrier as base64 PNG data; providers never expose their temporary paths.
 
 ## Configuration
 

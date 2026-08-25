@@ -10,11 +10,11 @@ The Bundle is the publishing and installation unit. Its `@fadinglight/*` package
 
 The bundled patch selects `harmonyos`, advertises a 100 ms post-capture refresh delay, limits opened files to 1 MiB, and returns at most 1000 entries per directory. A later profile patch may replace those runtime values and configure the HarmonyOS Provider's executable or device serial.
 
-The packaged preset carries its DevEco CLI skill and the aggregate depends on the HarmonyOS UI test tool named by its composition. The publish-path rehearsal packs the aggregate and its internal packages, installs only the aggregate tarball as a direct dependency of a fresh DSH profile, and verifies the installed patch, preset files, effect-owned root registration, runtime, HarmonyOS Provider, and browser UI.
+The packaged preset carries its DevEco CLI skill and scans the plugin-owned `$DSH_HOME/device-automation/skills` root. On the first automation workspace mount, the HarmonyOS Provider checks DevEco CLI and synchronizes its testing and fault or performance analysis skills into that root before device controls start. The aggregate depends on the HarmonyOS UI test tool named by its composition. The publish-path rehearsal packs the aggregate and its internal packages, installs only the aggregate tarball as a direct dependency of a fresh DSH profile, and verifies the installed patch, preset files, effect-owned root registration, runtime, HarmonyOS Provider, and browser UI.
 
 ## Model Experience
 
-Indirectly, through the bundled `automation` preset, whose own plugins register the HarmonyOS testing persona, `devecocli` tool, and DevEco CLI skill only for sessions that select that mode.
+Indirectly, through the bundled `automation` preset, whose own plugins register the HarmonyOS testing persona, `devecocli` tool, packaged DevEco CLI skill, and synchronized testing and diagnostics skill root only for sessions that select that mode.
 
 #### KV Cache effect
 

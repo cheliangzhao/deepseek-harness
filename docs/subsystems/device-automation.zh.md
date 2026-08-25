@@ -49,6 +49,17 @@ interface DeviceAutomationProvider {
   /** Stable platform label shown by clients. */
   readonly platform: string
   /**
+   * Read the latest provider-owned preparation progress without starting work.
+   * @returns one immutable point-in-time progress value.
+   */
+  preparationProgress(): DeviceAutomationPreparationProgress
+  /**
+   * Prepare platform tooling before the browser starts device operations.
+   * @param signal - caller cancellation.
+   * @returns readiness or one user action that can make the provider ready.
+   */
+  prepare(signal: AbortSignal): Promise<DeviceAutomationPreparation>
+  /**
    * Capture the current authorized device screen.
    * @param signal - caller cancellation.
    * @returns one complete validated screenshot.
@@ -64,11 +75,11 @@ interface DeviceAutomationProvider {
 }
 ```
 
-每项注册使用唯一的非空名称，并跟随其 Cordis effect 作用域。请求依次选择显式指定的 Provider、配置的默认 Provider，以及唯一注册的 Provider。注册表为空或存在歧义时会失败，不按注册顺序选择。
+每项注册使用唯一的非空名称，并跟随其 Cordis effect 作用域。请求依次选择显式指定的 Provider、配置的默认 Provider，以及唯一注册的 Provider。注册表为空或存在歧义时会失败，不按注册顺序选择。准备结果为就绪状态或一项安装操作；进度快照会报告当前阶段但不启动工作，Provider 就绪前，设备控制保持不可用。
 
 ## 受信浏览器操作
 
-运行时通过 Connection 服务以 `trusted-host` 权限注册 `/device-automation`。该通道提供 Provider 发现、截图、相对坐标点击、目录列表与受大小限制的 UTF-8 文件读取。浏览器请求不能指定任意工作区：文件操作从 `SessionHeader.cwd` 获取在线会话工作目录，通过 `ctx.fs` 解析路径，并拒绝解析后位于该目录之外的目标。目录和文件大小限制属于部署配置。
+运行时通过 Connection 服务以 `trusted-host` 权限注册 `/device-automation`。该通道提供 Provider 发现与准备进度、截图、相对坐标点击、目录列表与受大小限制的 UTF-8 文件读取。浏览器请求不能指定任意工作区：文件操作从 `SessionHeader.cwd` 获取在线会话工作目录，通过 `ctx.fs` 解析路径，并拒绝解析后位于该目录之外的目标。目录和文件大小限制属于部署配置。
 
 截图响应携带完整 PNG 字节和 Host 选定的下次请求等待时间。仅当当前 Session 记录了 `automation` agent preset 时，Consumer 才存在，并在侧栏标题中显示该模式；它会等到替换图片解码后再丢弃上一帧，并在“设备”页签、独立右侧栏或浏览器文档隐藏时停止轮询。
 

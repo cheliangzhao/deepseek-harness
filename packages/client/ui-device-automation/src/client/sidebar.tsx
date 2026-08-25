@@ -10,6 +10,8 @@ import {
   DeviceAutomationPanel,
   type DirectoryListing,
   type OpenedFile,
+  type PreparationProgress,
+  type PreparationResult,
   type ScreenshotFrame,
 } from './panel.tsx'
 import css from './sidebar.module.css'
@@ -25,6 +27,8 @@ type Translate = (key: DeviceAutomationKey) => string
 export interface DeviceAutomationSidebarProps {
   readonly sessions: ISessions
   readonly t: Translate
+  readonly prepare: (signal: AbortSignal) => Promise<PreparationResult>
+  readonly preparationProgress: (signal: AbortSignal) => Promise<PreparationProgress>
   readonly capture: (signal: AbortSignal) => Promise<ScreenshotFrame>
   readonly tap: (position: { x: number; y: number }) => Promise<void>
   readonly list: (sessionId: string, path: string | undefined, signal: AbortSignal) => Promise<DirectoryListing>
@@ -146,6 +150,8 @@ export function DeviceAutomationSidebar(props: DeviceAutomationSidebarProps) {
         key={sessionId}
         sessionId={sessionId}
         t={props.t}
+        prepare={props.prepare}
+        preparationProgress={props.preparationProgress}
         capture={props.capture}
         tap={props.tap}
         list={props.list}

@@ -5,7 +5,13 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
-import type { DirectoryListing, OpenedFile, ScreenshotFrame } from './panel.tsx'
+import type {
+  DirectoryListing,
+  OpenedFile,
+  PreparationProgress,
+  PreparationResult,
+  ScreenshotFrame,
+} from './panel.tsx'
 import { en, zh, type DeviceAutomationKey } from './locales.ts'
 import { DeviceAutomationSidebar } from './sidebar.tsx'
 
@@ -28,6 +34,40 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-device-automation: dictionaries')
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
+  const prepare = async (signal: AbortSignal): Promise<PreparationResult> => {
+    const record = objectValue(await call(connection, 'prepare', {}, signal), 'preparation response')
+    const status = stringValue(record.status, 'preparation status')
+    if (status === 'ready') return { status }
+    if (status !== 'action-required' || record.action !== 'install-cli') {
+      throw new Error(`unsupported device automation preparation status ${JSON.stringify(status)}`)
+    }
+    return {
+      status,
+      action: 'install-cli',
+      command: stringValue(record.command, 'installation command'),
+      url: stringValue(record.url, 'installation URL'),
+    }
+  }
+  const preparationProgress = async (signal: AbortSignal): Promise<PreparationProgress> => {
+    const record = objectValue(
+      await call(connection, 'preparation/progress', {}, signal),
+      'preparation progress response',
+    )
+    const phase = stringValue(record.phase, 'preparation progress phase')
+    if (phase === 'idle' || phase === 'checking-cli' || phase === 'ready'
+      || phase === 'failed' || phase === 'action-required') return { phase }
+    if (phase !== 'syncing-skills') {
+      throw new Error(`unsupported device automation preparation progress ${JSON.stringify(phase)}`)
+    }
+    const completed = numberValue(record.completed, 'completed skill count')
+    const total = numberValue(record.total, 'total skill count')
+    const skill = stringValue(record.skill, 'current skill')
+    if (!Number.isInteger(completed) || !Number.isInteger(total)
+      || total < 1 || completed >= total || skill.length === 0) {
+      throw new Error('invalid device automation skill synchronization progress')
+    }
+    return { phase, completed, total, skill }
+  }
   const capture = async (signal: AbortSignal): Promise<ScreenshotFrame> => {
     const value = await call(connection, 'screenshot', {}, signal)
     const record = objectValue(value, 'screenshot response')
@@ -70,7 +110,9 @@ export function apply(ctx: ClientContext): void {
     try {
       document.body.appendChild(host)
       root = createRoot(host)
-      root.render(createElement(DeviceAutomationSidebar, { sessions, t, capture, tap, list, read }))
+      root.render(createElement(DeviceAutomationSidebar, {
+        sessions, t, prepare, preparationProgress, capture, tap, list, read,
+      }))
     } catch (error) {
       root?.unmount()
       host.remove()

@@ -10,14 +10,17 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import {
-  assertFixtureInventory, compareOrRefreshGolden, launchWebScaffold, seedSession, watchConsole,
+  assertFixtureInventory, captureStableAria, compareOrRefreshGolden, launchWebScaffold, seedSession, watchConsole,
   webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
 import { newEnglishPage, saveFailureShot } from './support.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/device-automation', import.meta.url))
 const ARGV_EXPECTED = join(SNAPSHOT_DIR, 'tap-argv.expected.json')
+const PREPARATION_PROGRESS_EXPECTED = join(SNAPSHOT_DIR, 'preparation-progress.expected.md')
+const HARMONY_READY_EXPECTED = join(SNAPSHOT_DIR, 'harmony-ready.expected.md')
 const FILE_EXPECTED = join(SNAPSHOT_DIR, 'file-open.expected.txt')
+const CLI_MISSING_EXPECTED = join(SNAPSHOT_DIR, 'cli-missing.expected.md')
 const SCREEN = fileURLToPath(new URL('../../../examples/device-automation/tests/fixtures/screen.png', import.meta.url))
 const CLI_FIXTURE = fileURLToPath(new URL('./fixtures/device-automation-devecocli.mjs', import.meta.url))
 const MODE = webSnapshotMode()
@@ -104,6 +107,30 @@ describe('web e2e: device automation workspace', () => {
     const sidebar = page.getByRole('complementary', { name: 'Device automation', exact: true })
     await sidebar.waitFor({ timeout: 15_000 })
     await sidebar.getByText('Automation test mode', { exact: true }).waitFor({ timeout: 10_000 })
+    await sidebar.getByRole('progressbar', {
+      name: 'Synchronizing HarmonyOS automation skills…', exact: true,
+    }).waitFor({ timeout: 10_000 })
+    await compareOrRefreshGolden(
+      PREPARATION_PROGRESS_EXPECTED,
+      await captureStableAria(
+        page,
+        '[data-dsh-device-automation-host] [role="status"]',
+        scaffold.workspaceCwd,
+      ),
+      MODE,
+    )
+    await sidebar.getByRole('status', {
+      name: 'HarmonyOS automation is ready', exact: true,
+    }).waitFor({ timeout: 10_000 })
+    await compareOrRefreshGolden(
+      HARMONY_READY_EXPECTED,
+      await captureStableAria(
+        page,
+        '[data-dsh-device-automation-host] [data-dsh-harmony-ready]',
+        scaffold.workspaceCwd,
+      ),
+      MODE,
+    )
     const image = page.getByRole('img', { name: 'Current automated device screen', exact: true })
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth), {
       timeout: 15_000,
@@ -121,7 +148,11 @@ describe('web e2e: device automation workspace', () => {
     }, firstSource), { timeout: 15_000 }).toBe(true)
 
     const calls = (await readFile(callLog, 'utf8')).trim().split('\n').map(line => JSON.parse(line) as string[])
-    await compareOrRefreshGolden(ARGV_EXPECTED, JSON.stringify(calls, null, 2), MODE)
+    await compareOrRefreshGolden(
+      ARGV_EXPECTED,
+      JSON.stringify(calls, null, 2).replaceAll(scaffold.harnessHome, '{{harnessHome}}'),
+      MODE,
+    )
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
   }, 60_000)
@@ -160,7 +191,42 @@ describe('web e2e: device automation workspace', () => {
     await compareOrRefreshGolden(FILE_EXPECTED, (await content.textContent() ?? '').trimEnd(), MODE)
   })
 
+  it('shows installation guidance when DevEco CLI is unavailable', async () => {
+    const emptyPath = await mkdtemp(join(tmpdir(), 'dsh-device-automation-empty-path-'))
+    const savedPath = process.env.PATH
+    let missingScaffold: WebScaffold | undefined
+    let missingPage: Page | undefined
+    try {
+      process.env.PATH = emptyPath
+      missingScaffold = await launchWebScaffold()
+      await seedSession(missingScaffold, seedLog(), `${SESSION_ID}-missing-cli`, 'automation')
+      missingPage = await newEnglishPage(browser)
+      await missingPage.goto(missingScaffold.baseUrl, { waitUntil: 'load' })
+      await missingPage.locator('[role="treeitem"]').first().click()
+      await missingPage.locator('[role="treeitem"]').nth(1).click()
+      const alert = missingPage.getByRole('alert')
+      await alert.getByText('DevEco CLI is required', { exact: true }).waitFor({ timeout: 15_000 })
+      expect(await alert.getByText('npm install --global @deveco/deveco-cli', { exact: true }).count()).toBe(1)
+      expect(await alert.getByRole('link', { name: 'Download DevEco CLI' }).getAttribute('href'))
+        .toBe('https://www.npmjs.com/package/@deveco/deveco-cli')
+      const snapshot = await captureStableAria(missingPage, '[role="alert"]', missingScaffold.workspaceCwd)
+      await compareOrRefreshGolden(CLI_MISSING_EXPECTED, snapshot, MODE)
+    } finally {
+      await missingPage?.close()
+      await missingScaffold?.close()
+      if (savedPath === undefined) delete process.env.PATH
+      else process.env.PATH = savedPath
+      await rm(emptyPath, { recursive: true, force: true })
+    }
+  }, 60_000)
+
   it('keeps its snapshot inventory closed', async () => {
-    await assertFixtureInventory(SNAPSHOT_DIR, ['file-open.expected.txt', 'tap-argv.expected.json'])
+    await assertFixtureInventory(SNAPSHOT_DIR, [
+      'cli-missing.expected.md',
+      'file-open.expected.txt',
+      'harmony-ready.expected.md',
+      'preparation-progress.expected.md',
+      'tap-argv.expected.json',
+    ])
   })
 })

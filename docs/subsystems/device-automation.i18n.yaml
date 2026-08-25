@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/device-automation.md
-device-automation.md: bf85bb09492c0ea6ed14de869b557768403c627c
-device-automation.zh.md: b0e8c77f64d5fc8262be0d8a0b2a9a18a6d7b77c
+device-automation.md: e3cecef4e88d536cf9a0f76feb9c37692e431214
+device-automation.zh.md: 11fdbb092be5e28d6bd9c61478297f17d36b86ae

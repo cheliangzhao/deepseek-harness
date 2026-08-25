@@ -15,6 +15,7 @@ const packageDirectories = [
   'packages/device/device-automation-harmonyos',
   'packages/device/device-automation',
   'packages/harmony/tool-harmonyos-uitest',
+  'packages/util/home-paths',
   'vendor/cosmokit',
   'vendor/schemastery',
 ] as const
@@ -62,6 +63,7 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
         '@fadinglight/dsh-device-automation-runtime',
         '@fadinglight/dsh-device-automation-harmonyos',
         '@deepseek-ai/dsh-tool-harmonyos-uitest',
+        '@deepseek-ai/dsh-home-paths',
         '@deepseek-ai/cosmokit',
         '@deepseek-ai/schemastery',
       ] as const
@@ -148,6 +150,7 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
       expect(realpathSync(registered.registeredRoot)).toBe(realpathSync(join(installedPackage, 'presets')))
       expect(registered.metadata).toContain('name: 自动化测试模式')
       expect(registered.composition).toContain("name: '@deepseek-ai/dsh-tool-harmonyos-uitest'")
+      expect(registered.composition).toContain("'device-automation', 'skills'")
       expect(registered.skill).toContain('name: deveco-cli')
       expect(registered.disposed).toBe(true)
     } finally {

@@ -11,6 +11,33 @@
 .tabs button span { display: inline-flex; color: inherit; }
 .workspaceBody { min-height: 0; overflow: hidden; }
 
+.preparation { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; width: 100%; height: 100%; padding: 32px; box-sizing: border-box; color: var(--dsw-alias-label-primary); text-align: center; }
+.preparation strong { font-size: 14px; font-weight: 500; line-height: 20px; }
+.preparation > span:not(.emptyIcon, .preparationSpinner, .harmonyReadyMark) { max-width: 280px; color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; }
+.preparation code { max-width: 100%; overflow: auto; padding: 7px 10px; border-radius: 6px; background: var(--dsw-alias-markdown-code-block); color: var(--dsw-alias-label-primary); font-family: var(--ds-font-family-code); font-size: 11px; white-space: nowrap; }
+.preparationSpinner { width: 20px; height: 20px; border: 2px solid var(--dsw-alias-label-tertiary); border-top-color: var(--automation-accent); border-radius: 50%; animation: dsh-device-automation-spin 800ms linear infinite; }
+.preparationProgress { display: block; width: min(220px, 80%); height: 3px; overflow: hidden; border-radius: 2px; background: var(--dsw-alias-border-l2); }
+.preparationProgress > span { display: block; height: 100%; border-radius: inherit; background: var(--automation-accent); transition: width 180ms var(--ds-ease-in-out); }
+.preparation code.preparationCurrentSkill { max-width: min(280px, 100%); padding: 4px 8px; background: transparent; color: var(--dsw-alias-label-tertiary); }
+.preparationActions { display: flex; gap: 8px; margin-top: 4px; }
+.preparationActions a, .preparationActions button { display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--dsw-specific-sidebar-nav-item-active); color: var(--dsw-alias-label-primary); font: var(--dsw-font-xxs-12); text-decoration: none; cursor: pointer; }
+.preparationActions a:hover, .preparationActions button:hover { background: var(--dsw-alias-interactive-bg-hover); }
+
+.harmonyReady { animation: dsh-device-automation-ready-stage 1200ms var(--ds-ease-in-out) both; }
+.harmonyReadyMark { position: relative; display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 6px; color: var(--automation-accent); animation: dsh-device-automation-ready-mark 600ms var(--ds-ease-in-out) both; }
+.harmonyOrbit { position: absolute; inset: 5px; border: 1px solid var(--automation-accent); border-right-color: transparent; border-bottom-color: transparent; border-radius: 50%; opacity: .62; animation: dsh-device-automation-ready-orbit 850ms var(--ds-ease-in-out) both; }
+.harmonyOrbit::after { position: absolute; top: -3px; left: 50%; width: 5px; height: 5px; border-radius: 50%; background: var(--automation-accent); content: ''; transform: translateX(-50%); }
+.harmonyOrbitInner { inset: 15px; opacity: .36; animation-direction: reverse; animation-duration: 700ms; }
+.harmonyReadyCore { position: relative; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--dsw-specific-sidebar-nav-item-active); color: var(--automation-accent); animation: dsh-device-automation-ready-core 520ms var(--ds-ease-in-out) both; }
+.harmonyReady > strong, .harmonyReady > span:last-child { animation: dsh-device-automation-ready-copy 420ms 260ms var(--ds-ease-in-out) both; }
+
+@keyframes dsh-device-automation-spin { to { transform: rotate(360deg); } }
+@keyframes dsh-device-automation-ready-stage { 0% { opacity: 0; } 15%, 78% { opacity: 1; } 100% { opacity: 0; transform: scale(.985); } }
+@keyframes dsh-device-automation-ready-mark { 0% { opacity: 0; transform: scale(.72); } 72% { transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes dsh-device-automation-ready-orbit { from { transform: rotate(-150deg) scale(.78); } to { transform: rotate(180deg) scale(1); } }
+@keyframes dsh-device-automation-ready-core { 0% { opacity: 0; transform: scale(.45) rotate(-12deg); } 75% { transform: scale(1.12) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes dsh-device-automation-ready-copy { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
 .viewport { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--dsw-specific-sidebar-fill); }
 .preview { display: block; width: 100%; height: 100%; object-fit: contain; background: transparent; }
 .preview[data-interactive] { cursor: crosshair; }
@@ -50,5 +77,7 @@
 .inlineError { color: var(--dsw-alias-state-error-primary); }
 
 @media (prefers-reduced-motion: reduce) {
-  .tabs button, .tabs button::after, .backButton, .fileRow { transition: none; }
+  .tabs button, .tabs button::after, .backButton, .fileRow, .preparationProgress > span { transition: none; }
+  .preparationSpinner, .harmonyReadyMark, .harmonyOrbit, .harmonyReadyCore, .harmonyReady > strong, .harmonyReady > span:last-child { animation: none; }
+  .harmonyReady { animation-duration: 1ms; }
 }

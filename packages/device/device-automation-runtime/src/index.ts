@@ -51,12 +51,49 @@ export interface DeviceScreenshot {
   readonly height: number
 }
 
+/** Host preparation result returned before device controls become active. */
+export type DeviceAutomationPreparation =
+  | { readonly status: 'ready' }
+  | {
+    readonly status: 'action-required'
+    readonly action: 'install-cli'
+    readonly command: string
+    readonly url: string
+  }
+
+/** Current provider-owned preparation work exposed to browser progress UI. */
+export type DeviceAutomationPreparationProgress =
+  | { readonly phase: 'idle' | 'checking-cli' | 'ready' | 'failed' }
+  | {
+    readonly phase: 'syncing-skills'
+    readonly completed: number
+    readonly total: number
+    readonly skill: string
+  }
+  | {
+    readonly phase: 'action-required'
+    readonly action: 'install-cli'
+    readonly command: string
+    readonly url: string
+  }
+
 /** Provider role implemented by HarmonyOS, Android, or iOS adapters. */
 export interface DeviceAutomationProvider {
   /** Unique registry name. */
   readonly name: string
   /** Stable platform label shown by clients. */
   readonly platform: string
+  /**
+   * Read the latest provider-owned preparation progress without starting work.
+   * @returns one immutable point-in-time progress value.
+   */
+  preparationProgress(): DeviceAutomationPreparationProgress
+  /**
+   * Prepare platform tooling before the browser starts device operations.
+   * @param signal - caller cancellation.
+   * @returns readiness or one user action that can make the provider ready.
+   */
+  prepare(signal: AbortSignal): Promise<DeviceAutomationPreparation>
   /**
    * Capture the current authorized device screen.
    * @param signal - caller cancellation.
@@ -130,7 +167,6 @@ export class DeviceAutomationRuntime extends Service {
     if (this.providers.has(name)) {
       throw new Error(`device automation provider ${JSON.stringify(provider.name)} is already registered`)
     }
-    // oxlint-disable-next-line typescript/no-misused-promises -- synchronous cleanup; direct return preserves disposer identity
     return this.ctx.effect(() => {
       this.providers.set(name, provider)
       return () => {
@@ -150,6 +186,22 @@ export class DeviceAutomationRuntime extends Service {
   private async handleRpc(endpoint: string, payload: unknown, signal: AbortSignal): Promise<RpcResult<unknown>> {
     try {
       if (endpoint === 'providers') return ok({ providers: this.listProviders() })
+      if (endpoint === 'prepare') {
+        const provider = this.resolveProvider(parseOptionalProvider(payload))
+        return ok({
+          provider: provider.name,
+          platform: provider.platform,
+          ...await provider.prepare(signal),
+        })
+      }
+      if (endpoint === 'preparation/progress') {
+        const provider = this.resolveProvider(parseOptionalProvider(payload))
+        return ok({
+          provider: provider.name,
+          platform: provider.platform,
+          ...provider.preparationProgress(),
+        })
+      }
       if (endpoint === 'screenshot') {
         const provider = this.resolveProvider(parseOptionalProvider(payload))
         const screenshot = await provider.screenshot(signal)

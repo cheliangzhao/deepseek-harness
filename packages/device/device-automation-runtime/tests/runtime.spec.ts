@@ -59,6 +59,8 @@ function stubProvider(name = 'stub'): DeviceAutomationProvider {
   return {
     name,
     platform: name,
+    preparationProgress: vi.fn(() => ({ phase: 'idle' as const })),
+    prepare: vi.fn(async () => ({ status: 'ready' as const })),
     screenshot: vi.fn(async () => ({ mediaType: 'image/png' as const, bytes: Uint8Array.of(1), width: 1, height: 1 })),
     tap: vi.fn(async () => {}),
   }
@@ -84,9 +86,19 @@ describe('DeviceAutomationRuntime', () => {
     const tap = vi.fn(async () => {})
     runtime.registerProvider({
       name: 'harmonyos', platform: 'harmonyos', tap,
+      preparationProgress: () => ({ phase: 'ready' }),
+      prepare: async () => ({ status: 'ready' }),
       screenshot: async () => ({ mediaType: 'image/png', bytes: Uint8Array.of(1, 2, 3), width: 4, height: 6 }),
     })
     const signal = new AbortController().signal
+    await expect(call('prepare', {}, signal)).resolves.toEqual({
+      ok: true,
+      value: { provider: 'harmonyos', platform: 'harmonyos', status: 'ready' },
+    })
+    await expect(call('preparation/progress', {}, signal)).resolves.toEqual({
+      ok: true,
+      value: { provider: 'harmonyos', platform: 'harmonyos', phase: 'ready' },
+    })
     await expect(call('screenshot', {}, signal)).resolves.toEqual({
       ok: true,
       value: {
@@ -101,7 +113,8 @@ describe('DeviceAutomationRuntime', () => {
   it('rejects duplicate providers and malformed tap payloads', async () => {
     const { runtime, call } = await mount()
     const provider: DeviceAutomationProvider = {
-      name: 'stub', platform: 'stub', screenshot: vi.fn(), tap: vi.fn(),
+      name: 'stub', platform: 'stub', preparationProgress: vi.fn(),
+      prepare: vi.fn(), screenshot: vi.fn(), tap: vi.fn(),
     }
     runtime.registerProvider(provider)
     expect(() => { runtime.registerProvider(provider) }).toThrow('already registered')

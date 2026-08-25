@@ -3226,10 +3226,12 @@ export interface Config {
   maxBytes?: number
   /** Screenshot and click command deadline in milliseconds. */
   timeoutMs?: number
+  /** Deadline for one HarmonyOS skill synchronization command. */
+  skillSyncTimeoutMs?: number
 }
 ```
 
-Source: [`packages/device/device-automation-harmonyos/src/index.ts:23`](../packages/device/device-automation-harmonyos/src/index.ts)
+Source: [`packages/device/device-automation-harmonyos/src/index.ts:41`](../packages/device/device-automation-harmonyos/src/index.ts)
 
 <a id="fadinglightdsh-device-automation-runtime"></a>
 
@@ -3251,7 +3253,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/device/device-automation-runtime/src/index.ts:76`](../packages/device/device-automation-runtime/src/index.ts)
+Source: [`packages/device/device-automation-runtime/src/index.ts:113`](../packages/device/device-automation-runtime/src/index.ts)
 
 ## Loadable plugins with no config
 
