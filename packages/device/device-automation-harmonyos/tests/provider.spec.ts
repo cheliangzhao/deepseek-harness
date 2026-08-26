@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
@@ -52,11 +52,22 @@ function screenshotPath(spec: SubprocessSpawnSpec): string {
   return path
 }
 
+function installSkillFixture(spec: SubprocessSpawnSpec): void {
+  if (spec.argv[1] !== 'skills' || spec.argv[2] !== 'add') return
+  const skill = spec.argv.at(spec.argv.indexOf('--skill') + 1)
+  const root = spec.argv.at(spec.argv.indexOf('--path') + 1)
+  if (skill === undefined || root === undefined) throw new Error('skill command omitted its name or target path')
+  const directory = join(root, skill)
+  mkdirSync(directory, { recursive: true })
+  writeFileSync(join(directory, 'SKILL.md'), `---\nname: ${skill}\n---\n`)
+}
+
 interface MountOptions {
   onSpawn?: (spec: SubprocessSpawnSpec) => Promise<{ exitCode: number | null }>
   config?: HarmonyProvider.Config
   direct?: boolean
   collect?: boolean
+  materializeSkills?: boolean
   resolveExecutable?: () => Promise<string>
 }
 
@@ -73,7 +84,10 @@ async function mount(options: MountOptions = {}) {
     spawn: vi.fn((spec: SubprocessSpawnSpec) => {
       calls.push([...spec.argv])
       const done = options.onSpawn?.(spec) ?? Promise.resolve({ exitCode: 0 })
-      return quietHandle(done.then(value => ({ ...value, signal: null })), options.collect)
+      return quietHandle(done.then((value) => {
+        if (value.exitCode === 0 && options.materializeSkills !== false) installSkillFixture(spec)
+        return { ...value, signal: null }
+      }), options.collect)
     }),
   })
   const config = options.config ?? { devecoCliExecutable: '/fake/devecocli' }
@@ -84,7 +98,7 @@ async function mount(options: MountOptions = {}) {
 }
 
 describe('HarmonyOS device provider', () => {
-  it('synchronizes the automation skills once before reporting ready', async () => {
+  it('persists a complete synchronization across provider instances', async () => {
     const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
     homes.push(home)
     vi.stubEnv('DSH_HOME', home)
@@ -96,19 +110,90 @@ describe('HarmonyOS device provider', () => {
       .resolves.toEqual([{ status: 'ready' }, { status: 'ready' }])
     await expect(provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
     expect(provider.preparationProgress()).toEqual({ phase: 'ready' })
-    expect(calls).toEqual(AUTOMATION_MODE_SKILLS.map(skill => [
-      '/fake/devecocli',
-      'skills',
-      'add',
-      '--skill',
-      skill,
-      '--path',
-      join(home, 'device-automation', 'skills'),
-      '--force',
-    ]))
+    expect(calls).toEqual([
+      ['/fake/devecocli', 'update'],
+      ...AUTOMATION_MODE_SKILLS.map(skill => [
+        '/fake/devecocli',
+        'skills',
+        'add',
+        '--skill',
+        skill,
+        '--path',
+        join(home, 'device-automation', 'skills'),
+        '--force',
+      ]),
+    ])
+    expect(JSON.parse(readFileSync(join(
+      home, 'device-automation', 'skills', '.fadinglight-device-automation-skills.json',
+    ), 'utf8'))).toMatchObject({
+      version: 2,
+      providerVersion: '0.1.0-rc.12',
+      skills: AUTOMATION_MODE_SKILLS,
+      synchronizedAt: expect.any(String),
+    })
+
+    const restarted = await mount()
+    await expect(restarted.provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
+    expect(restarted.calls).toEqual([])
+  })
+
+  it('resynchronizes when the state is invalid or an installed Skill is missing', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
+    const signal = new AbortController().signal
+    const initial = await mount()
+    await initial.provider.prepare(signal)
+    const skillDirectory = join(home, 'device-automation', 'skills')
+    const statePath = join(skillDirectory, '.fadinglight-device-automation-skills.json')
+
+    writeFileSync(statePath, '{invalid')
+    const invalid = await mount()
+    await expect(invalid.provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
+    expect(invalid.calls).toHaveLength(AUTOMATION_MODE_SKILLS.length + 1)
+    expect(invalid.calls[0]).toEqual(['/fake/devecocli', 'update'])
+
+    rmSync(join(skillDirectory, 'hmos-local-test', 'SKILL.md'))
+    const incomplete = await mount()
+    await expect(incomplete.provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
+    expect(incomplete.calls).toHaveLength(AUTOMATION_MODE_SKILLS.length)
+    expect(incomplete.calls).not.toContainEqual(['/fake/devecocli', 'update'])
+  })
+
+  it('updates DevEco CLI and every Skill when a complete synchronization is a week old', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
+    const signal = new AbortController().signal
+    const initial = await mount()
+    await initial.provider.prepare(signal)
+    const statePath = join(home, 'device-automation', 'skills', '.fadinglight-device-automation-skills.json')
+    const state = JSON.parse(readFileSync(statePath, 'utf8')) as Record<string, unknown>
+    writeFileSync(statePath, `${JSON.stringify({ ...state, synchronizedAt: '2020-01-01T00:00:00.000Z' })}\n`)
+
+    const weekly = await mount()
+    await expect(weekly.provider.prepare(signal)).resolves.toEqual({ status: 'ready' })
+    expect(weekly.calls).toEqual([
+      ['/fake/devecocli', 'update'],
+      ...AUTOMATION_MODE_SKILLS.map(skill => expect.arrayContaining(['skills', 'add', '--skill', skill])),
+    ])
+  })
+
+  it('rejects a successful CLI exit that produced no usable Skill', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
+    const { provider } = await mount({ materializeSkills: false })
+
+    await expect(provider.prepare(new AbortController().signal))
+      .rejects.toThrow('reported success without installing')
+    expect(provider.preparationProgress()).toEqual({ phase: 'failed' })
   })
 
   it('reports the current skill while preparation is active', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'dsh-harmony-skills-'))
+    homes.push(home)
+    vi.stubEnv('DSH_HOME', home)
     let release: (() => void) | undefined
     const first = new Promise<{ exitCode: number | null }>((resolve) => {
       release = () => { resolve({ exitCode: 0 }) }
@@ -155,7 +240,7 @@ describe('HarmonyOS device provider', () => {
     await expect(retrying.provider.prepare(new AbortController().signal)).rejects.toThrow('could not synchronize')
     expect(retrying.provider.preparationProgress()).toEqual({ phase: 'failed' })
     await expect(retrying.provider.prepare(new AbortController().signal)).resolves.toEqual({ status: 'ready' })
-    expect(retrying.calls.map(call => call.at(4))).toEqual([
+    expect(retrying.calls.filter(call => call[1] === 'skills').map(call => call.at(4))).toEqual([
       'hmos-local-test',
       'hmos-instrument-test',
       ...AUTOMATION_MODE_SKILLS,

@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/harmony/tool-harmonyos-uitest/README.md
-README.md: 428d61cbb54e54f6d98f6d1ac9e0eef67a1ce493
-README.zh.md: bc8f13182ee2afea4a0dbdb907f547e21d9ec273
+README.md: d2af1194551fb241e929b59fcbc0121a21ff7916
+README.zh.md: 1a96fc4153b4093e1b74e5a33182de081bc33825

@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { act, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import { SlotRegistry } from '@deepseek-ai/dsh-client-runtime/client'
 
 const PLUGIN_ID = '@fadinglight/dsh-client-ui-device-automation'
 
@@ -55,12 +56,17 @@ describe('tsdown client artifact', () => {
   it.skipIf(code === undefined)('declares only services available in the published Web client', async () => {
     const { exports, handoff } = await loadArtifact()
     expect(handoff.id).toBe(PLUGIN_ID)
-    expect(exports.inject).toEqual(['sessions', 'locale', 'connection'])
+    expect(exports.inject).toEqual(['sessions', 'locale', 'connection', 'slots', 'conversation'])
   })
 
   it.skipIf(code === undefined)('shows only for the selected automation session, collapses, and disposes the sidebar', async () => {
     const { exports } = await loadArtifact()
     const ctx = new Context()
+    const slots = new SlotRegistry(ctx)
+    slots.register({
+      name: 'root',
+      children: { 'conversation.view': { kind: 'list', scope: 'session' } },
+    } as never, (() => null) as never)
     const listeners = new Set<() => void>()
     let state: {
       ids: string[]
@@ -79,13 +85,16 @@ describe('tsdown client artifact', () => {
         getSnapshot: () => state,
         subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
       },
+      scope: () => ({ get: (name: string) => name === 'conversation' ? conversation : undefined }),
     }
+    const conversation = { send: async () => {} }
     ctx.provide('locale', {
       register: () => () => {},
       bind: () => (key: string) => key,
     })
     ctx.provide('connection', { rpc: { call: async () => ({ ok: true, value: {} }) } })
     ctx.provide('sessions', sessions)
+    ctx.provide('conversation', conversation)
     const app = document.createElement('div')
     app.id = 'root'
     document.body.appendChild(app)
@@ -112,6 +121,7 @@ describe('tsdown client artifact', () => {
       for (const listener of listeners) listener()
     })
     await waitFor(() => { expect(host?.textContent).toContain('title') })
+    expect(slots.entries('conversation.view').map(entry => entry.options.id)).toEqual(['device-automation-tests'])
     expect(document.body.hasAttribute('data-dsh-device-automation-open')).toBe(true)
     expect(document.documentElement.style.getPropertyValue('--dsh-device-automation-sidebar-width')).toBe('420px')
 
@@ -123,6 +133,7 @@ describe('tsdown client artifact', () => {
       expect(host?.childElementCount).toBe(0)
       expect(document.documentElement.style.getPropertyValue('--dsh-device-automation-sidebar-width')).toBe('')
       expect(document.body.hasAttribute('data-dsh-device-automation-open')).toBe(false)
+      expect(slots.entries('conversation.view')).toHaveLength(0)
     })
 
     await act(async () => {
@@ -148,5 +159,6 @@ describe('tsdown client artifact', () => {
     expect(document.body.hasAttribute('data-dsh-device-automation-open')).toBe(false)
     expect(document.body.hasAttribute('data-dsh-device-automation-collapsed')).toBe(false)
     expect(listeners).toHaveLength(0)
+    expect(slots.entries('conversation.view')).toHaveLength(0)
   })
 })

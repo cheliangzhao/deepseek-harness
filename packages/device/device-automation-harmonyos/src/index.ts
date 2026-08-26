@@ -1,8 +1,9 @@
 /** HarmonyOS provider for the platform-neutral device automation service. */
-import { mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises'
+import { lstat, mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
+import { writeFileAtomic } from '@deepseek-ai/dsh-atomic-write'
 import z from '@deepseek-ai/schemastery'
 import type {
   DeviceAutomationPreparation,
@@ -22,6 +23,10 @@ const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 const DEFAULT_MAX_BYTES = 16 * 1024 * 1024
 const DEFAULT_TIMEOUT_MS = 15_000
 const DEFAULT_SKILL_SYNC_TIMEOUT_MS = 120_000
+const DEFAULT_FULL_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1_000
+const SKILL_SYNC_STATE_VERSION = 2
+const SKILL_SYNC_STATE_FILE = '.fadinglight-device-automation-skills.json'
+const PACKAGE_MANIFEST = new URL('../package.json', import.meta.url)
 const AUTOMATION_MODE_SKILLS = [
   'hmos-local-test',
   'hmos-instrument-test',
@@ -37,6 +42,28 @@ const AUTOMATION_MODE_SKILLS = [
 const DEVECO_CLI_INSTALL_COMMAND = 'npm install --global @deveco/deveco-cli'
 const DEVECO_CLI_INSTALL_URL = 'https://www.npmjs.com/package/@deveco/deveco-cli'
 
+interface SkillSyncState {
+  readonly version: typeof SKILL_SYNC_STATE_VERSION
+  readonly providerVersion: string
+  readonly skills: readonly string[]
+  readonly synchronizedAt: string
+}
+
+type SkillSynchronization = 'current' | 'skills' | 'full'
+
+function skillSyncState(providerVersion: string, synchronizedAt: string): SkillSyncState {
+  return {
+    version: SKILL_SYNC_STATE_VERSION,
+    providerVersion,
+    skills: AUTOMATION_MODE_SKILLS,
+    synchronizedAt,
+  }
+}
+
+function renderSkillSyncState(providerVersion: string, synchronizedAt: string): string {
+  return `${JSON.stringify(skillSyncState(providerVersion, synchronizedAt), null, 2)}\n`
+}
+
 /** HarmonyOS provider configuration. */
 export interface Config {
   /** Optional absolute DevEco CLI executable path. */
@@ -47,8 +74,10 @@ export interface Config {
   maxBytes?: number
   /** Screenshot and click command deadline in milliseconds. */
   timeoutMs?: number
-  /** Deadline for one HarmonyOS skill synchronization command. */
+  /** Deadline for one DevEco CLI update or HarmonyOS Skill synchronization command. */
   skillSyncTimeoutMs?: number
+  /** Maximum age of a complete DevEco CLI and Skill synchronization. */
+  fullSyncIntervalMs?: number
 }
 
 export const Config: z<Config> = z.object({
@@ -57,6 +86,7 @@ export const Config: z<Config> = z.object({
   maxBytes: z.natural().min(1).default(DEFAULT_MAX_BYTES),
   timeoutMs: z.natural().min(1).default(DEFAULT_TIMEOUT_MS),
   skillSyncTimeoutMs: z.natural().min(1).default(DEFAULT_SKILL_SYNC_TIMEOUT_MS),
+  fullSyncIntervalMs: z.natural().min(1).default(DEFAULT_FULL_SYNC_INTERVAL_MS),
 })
 
 /**
@@ -189,7 +219,30 @@ class HarmonyOsDeviceProvider implements DeviceAutomationProvider {
     }
 
     const skillDirectory = dshHomePath('device-automation', 'skills')
-    await mkdir(skillDirectory, { recursive: true })
+    await mkdir(skillDirectory, { recursive: true, mode: 0o700 })
+    const providerVersion = await packageVersion()
+    const statePath = join(skillDirectory, SKILL_SYNC_STATE_FILE)
+    const synchronization = await requiredSynchronization(
+      statePath,
+      skillDirectory,
+      providerVersion,
+      this.config.fullSyncIntervalMs ?? DEFAULT_FULL_SYNC_INTERVAL_MS,
+    )
+    if (synchronization === 'current') {
+      return { status: 'ready' }
+    }
+    if (synchronization === 'full') {
+      const result = await runCli(
+        this.ctx,
+        this.config,
+        ['update'],
+        this.directory,
+        this.lifecycle.signal,
+        this.config.skillSyncTimeoutMs ?? DEFAULT_SKILL_SYNC_TIMEOUT_MS,
+        executable,
+      )
+      if (result.exitCode !== 0) throw new Error('devecocli could not update before automation Skill synchronization')
+    }
     for (const [index, skill] of AUTOMATION_MODE_SKILLS.entries()) {
       this.preparationProgressValue = {
         phase: 'syncing-skills',
@@ -209,7 +262,18 @@ class HarmonyOsDeviceProvider implements DeviceAutomationProvider {
       if (result.exitCode !== 0) {
         throw new Error(`devecocli could not synchronize automation skill ${JSON.stringify(skill)}`)
       }
+      if (!await installedSkillExists(skillDirectory, skill)) {
+        throw new Error(`devecocli reported success without installing automation skill ${JSON.stringify(skill)}`)
+      }
     }
+    const synchronizedAt = synchronization === 'full'
+      ? new Date().toISOString()
+      : (await readSkillSyncState(statePath))?.synchronizedAt
+    if (synchronizedAt === undefined) throw new Error('automation Skill synchronization state disappeared')
+    await writeFileAtomic(statePath, renderSkillSyncState(providerVersion, synchronizedAt), {
+      mode: 0o600,
+      dirMode: 0o700,
+    })
     return { status: 'ready' }
   }
 
@@ -227,6 +291,65 @@ class HarmonyOsDeviceProvider implements DeviceAutomationProvider {
     this.operationTail = result.then(() => undefined, () => undefined)
     return result
   }
+}
+
+async function packageVersion(): Promise<string> {
+  const value = JSON.parse(await readFile(PACKAGE_MANIFEST, 'utf8')) as { version: string }
+  return value.version
+}
+
+async function requiredSynchronization(
+  statePath: string,
+  skillDirectory: string,
+  providerVersion: string,
+  fullSyncIntervalMs: number,
+): Promise<SkillSynchronization> {
+  const state = await readSkillSyncState(statePath)
+  if (state === undefined || state.providerVersion !== providerVersion || !sameSkills(state.skills)) return 'full'
+  const synchronizedAt = Date.parse(state.synchronizedAt)
+  if (!Number.isFinite(synchronizedAt) || synchronizedAt > Date.now() || Date.now() - synchronizedAt >= fullSyncIntervalMs) return 'full'
+  const allInstalled = (await Promise.all(AUTOMATION_MODE_SKILLS.map(
+    skill => installedSkillExists(skillDirectory, skill),
+  ))).every(Boolean)
+  return allInstalled ? 'current' : 'skills'
+}
+
+async function readSkillSyncState(statePath: string): Promise<SkillSyncState | undefined> {
+  let text: string
+  try {
+    text = await readFile(statePath, 'utf8')
+  } catch {
+    return undefined
+  }
+  try {
+    const value: unknown = JSON.parse(text)
+    if (!isSkillSyncState(value)) return undefined
+    return value
+  } catch {
+    return undefined
+  }
+}
+
+function isSkillSyncState(value: unknown): value is SkillSyncState {
+  if (typeof value !== 'object' || value === null) return false
+  const candidate = value as Record<string, unknown>
+  return candidate.version === SKILL_SYNC_STATE_VERSION
+    && typeof candidate.providerVersion === 'string'
+    && Array.isArray(candidate.skills)
+    && candidate.skills.every(skill => typeof skill === 'string')
+    && typeof candidate.synchronizedAt === 'string'
+}
+
+function sameSkills(skills: readonly string[]): boolean {
+  return skills.length === AUTOMATION_MODE_SKILLS.length
+    && skills.every((skill, index) => skill === AUTOMATION_MODE_SKILLS[index])
+}
+
+async function installedSkillExists(skillDirectory: string, skill: string): Promise<boolean> {
+  const directory = await lstat(join(skillDirectory, skill)).catch(() => undefined)
+  if (directory === undefined || !directory.isDirectory() || directory.isSymbolicLink()) return false
+  const instructions = await lstat(join(skillDirectory, skill, 'SKILL.md')).catch(() => undefined)
+  return instructions !== undefined && instructions.isFile() && !instructions.isSymbolicLink()
 }
 
 /**

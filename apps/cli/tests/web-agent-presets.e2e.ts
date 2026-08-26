@@ -27,6 +27,7 @@ const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 const DEVICE_AUTOMATION_PATCH = join(REPO_ROOT, 'packages/device/device-automation/cordis.patch.yml')
+const AUTOMATION_PRESET_ROOT = join(REPO_ROOT, 'packages/device/device-automation/presets')
 const AUTOMATION_PRESET_DIR = join(REPO_ROOT, 'packages/device/device-automation/presets/automation')
 const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
 const CLAUDE_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-claude-code')
@@ -86,9 +87,8 @@ async function bootWeb(
     { id: 'skill-badge', disabled: false },
     { id: 'modules', disabled: true },
     { id: 'connection', disabled: true },
-    // The preset registrar remains active, while the device workspace roles
-    // that depend on the disabled browser transport stay outside this
-    // agent-capability composition test.
+    // Device workspace roles that depend on the disabled browser transport
+    // stay outside this agent-capability composition test.
     { id: 'device-automation-runtime', disabled: true },
     { id: 'device-automation-harmonyos', disabled: true },
     { id: 'ui-device-automation', disabled: true },
@@ -103,15 +103,18 @@ async function bootWeb(
       { id: 'directory-picker-browse', name: '@deepseek-ai/dsh-host-directory-picker-browse' },
       { id: 'ui-directory-picker-browse', name: '@deepseek-ai/dsh-client-ui-directory-picker-browse' },
     ] },
-    // The roster AppCLIEntry would patch in; only the shipped root, so a
-    // developer's own `~/.dsh/.preset` cannot change this test's outcome.
+    // The roster AppCLIEntry would patch in, plus the Bundle's user-installed
+    // automation root. A developer's own home cannot change this outcome.
     // `default` here is the COMPOSITION default — the base layer the settings
     // document overrides.
     {
       id: 'agent-presets',
       config: {
         default: 'standard',
-        roots: [{ path: join(CONFIG_DIR, 'agent-presets'), trust: 'system' }],
+        roots: [
+          { path: join(CONFIG_DIR, 'agent-presets'), trust: 'system' },
+          { path: AUTOMATION_PRESET_ROOT, trust: 'user' },
+        ],
         includeUserRoot: false,
       },
     },
@@ -225,11 +228,12 @@ describe('the shipped Web composition', () => {
     }
   })
 
-  it('supplies the five shipped presets, and only those, from system roots', async () => {
+  it('supplies the shipped presets plus the user-installed automation preset', async () => {
     const listed = await ctx.agentPresets.list()
 
     expect(listed.map(preset => preset.id).sort()).toEqual(['automation', 'code', 'cordis', 'minimal', 'standard'])
-    expect(listed.every(preset => preset.trust === 'system')).toBe(true)
+    expect(listed.find(preset => preset.id === 'automation')?.trust).toBe('user')
+    expect(listed.filter(preset => preset.id !== 'automation').every(preset => preset.trust === 'system')).toBe(true)
     expect(ctx.agentPresets.defaultId).toBe('standard')
   })
 

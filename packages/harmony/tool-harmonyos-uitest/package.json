@@ -1,13 +1,13 @@
 {
-  "name": "@deepseek-ai/dsh-tool-harmonyos-uitest",
+  "name": "@fadinglight/dsh-tool-harmonyos-uitest",
   "description": "Model-facing generic devecocli runner for the command families documented by the bundled HarmonyOS automation skill",
-  "version": "0.1.0-rc.8",
+  "version": "0.1.0-rc.2",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/cheliangzhao/deepseek-harness.git",
     "directory": "packages/harmony/tool-harmonyos-uitest"
   },
   "type": "module",

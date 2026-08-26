@@ -2586,30 +2586,6 @@ export interface Config {
 
 来源：[`packages/goal/tool-goal/src/index.ts:26`](../packages/goal/tool-goal/src/index.ts)
 
-<a id="deepseek-aidsh-tool-harmonyos-uitest"></a>
-
-## `@deepseek-ai/dsh-tool-harmonyos-uitest`
-
-需要：`tools` · `subprocess` · `systemPrompt`
-
-```ts config-catalog
-/** Execution limits and optional executable override. */
-export interface Config {
-  /** Enables the tool and its prompt guidance. */
-  enabled?: boolean
-  /** Explicit DevEco CLI executable; omitted resolves `devecocli` from PATH. */
-  devecoCliExecutable?: string
-  /** Maximum wall-clock time for one CLI process. */
-  timeoutMs?: number
-  /** Termination grace passed to the subprocess service. */
-  graceMs?: number
-  /** Retained diagnostic bytes for each process stream. */
-  maxOutputBytes?: number
-}
-```
-
-来源：[`packages/harmony/tool-harmonyos-uitest/src/index.ts:30`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
-
 <a id="deepseek-aidsh-tool-jobs"></a>
 
 ## `@deepseek-ai/dsh-tool-jobs`
@@ -3229,12 +3205,14 @@ export interface Config {
   maxBytes?: number
   /** Screenshot and click command deadline in milliseconds. */
   timeoutMs?: number
-  /** Deadline for one HarmonyOS skill synchronization command. */
+  /** Deadline for one DevEco CLI update or HarmonyOS Skill synchronization command. */
   skillSyncTimeoutMs?: number
+  /** Maximum age of a complete DevEco CLI and Skill synchronization. */
+  fullSyncIntervalMs?: number
 }
 ```
 
-来源：[`packages/device/device-automation-harmonyos/src/index.ts:41`](../packages/device/device-automation-harmonyos/src/index.ts)
+来源：[`packages/device/device-automation-harmonyos/src/index.ts:68`](../packages/device/device-automation-harmonyos/src/index.ts)
 
 <a id="fadinglightdsh-device-automation-runtime"></a>
 
@@ -3257,6 +3235,30 @@ export interface Config {
 ```
 
 来源：[`packages/device/device-automation-runtime/src/index.ts:113`](../packages/device/device-automation-runtime/src/index.ts)
+
+<a id="fadinglightdsh-tool-harmonyos-uitest"></a>
+
+## `@fadinglight/dsh-tool-harmonyos-uitest`
+
+需要：`tools` · `subprocess` · `systemPrompt`
+
+```ts config-catalog
+/** Execution limits and optional executable override. */
+export interface Config {
+  /** Enables the tool and its prompt guidance. */
+  enabled?: boolean
+  /** Explicit DevEco CLI executable; omitted resolves `devecocli` from PATH. */
+  devecoCliExecutable?: string
+  /** Maximum wall-clock time for one CLI process. */
+  timeoutMs?: number
+  /** Termination grace passed to the subprocess service. */
+  graceMs?: number
+  /** Retained diagnostic bytes for each process stream. */
+  maxOutputBytes?: number
+}
+```
+
+来源：[`packages/harmony/tool-harmonyos-uitest/src/index.ts:30`](../packages/harmony/tool-harmonyos-uitest/src/index.ts)
 
 ## 无配置的可加载插件
 
@@ -3333,7 +3335,6 @@ export interface Config {
 - `@deepseek-ai/dsh-user-questions`（[`packages/interaction/user-questions/src/index.ts`](../packages/interaction/user-questions/src/index.ts)）
 - `@deepseek-ai/dsh-workspace` — 需要 `storageDomain` · `sessionPersistence`（[`packages/workspace/workspace/src/index.ts`](../packages/workspace/workspace/src/index.ts)）
 - `@fadinglight/dsh-client-ui-device-automation`（[`packages/client/ui-device-automation/src/index.ts`](../packages/client/ui-device-automation/src/index.ts)）
-- `@fadinglight/dsh-device-automation` — 需要 `agentPresets`（[`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts)）
 
 ## Seam 包（不可直接加载）
 
@@ -3391,3 +3392,4 @@ export interface Config {
 - `@deepseek-ai/dsh-typert-generator`（[`packages/typert/generator/src/index.ts`](../packages/typert/generator/src/index.ts)）
 - `@deepseek-ai/dsh-typert-protocol`（[`packages/typert/protocol/src/index.ts`](../packages/typert/protocol/src/index.ts)）
 - `@deepseek-ai/dsh-typert-registry`（[`packages/typert/registry/src/index.ts`](../packages/typert/registry/src/index.ts)）
+- `@fadinglight/dsh-device-automation`（[`packages/device/device-automation/src/index.ts`](../packages/device/device-automation/src/index.ts)）

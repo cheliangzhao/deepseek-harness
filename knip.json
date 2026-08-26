@@ -76,7 +76,8 @@
         "**/*.ts"
       ],
       "ignoreDependencies": [
-        "@deepseek-ai/.+"
+        "@deepseek-ai/.+",
+        "@fadinglight/dsh-tool-harmonyos-uitest"
       ]
     },
     "packages/host/directory-picker-auto": {
@@ -674,7 +675,7 @@
         "src/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@deepseek-ai/dsh-tool-harmonyos-uitest",
+        "@fadinglight/dsh-tool-harmonyos-uitest",
         "@fadinglight/dsh-client-ui-device-automation",
         "@fadinglight/dsh-device-automation-harmonyos",
         "@fadinglight/dsh-device-automation-runtime"

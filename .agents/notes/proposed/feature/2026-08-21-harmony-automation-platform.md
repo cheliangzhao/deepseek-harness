@@ -25,7 +25,7 @@ Add a harmony device capability family under `packages/harmony/` following the e
 
 ### P3 — 自动化测试模式 preset
 
-- `apps/cli/config/agent-presets/automation/agent.cordis.yml` — standard base plus the harmony rows; **service-publishing rows sit in an `isolate` realm group** (the presets plugin rejects service rows in the root realm); testing persona. `preset.yml` with `name: 自动化测试模式`, `order: 5`. Directory discovery makes the mode appear with zero backend code.
+- `packages/device/device-automation/presets/automation/agent.cordis.yml` — standard base plus the harmony rows; **service-publishing rows sit in an `isolate` realm group** (the presets plugin rejects service rows in the root realm); testing persona. `preset.yml` with `name: 自动化测试模式`, `order: 5`. The Bundle's explicit CLI copies it into the user roster as decided by [external Bundle preset installation](../../implemented/architecture/2026-08-26-external-bundle-user-preset-installation.md).
 - `packages/client/ui-agent-preset/src/client/locales.ts` — `presetAutomationName/Description` keys, zh/en copy, `BUILT_IN_PRESET_KEYS` entry; e2e/snapshot updates.
 
 ### P4 — Device screen preview

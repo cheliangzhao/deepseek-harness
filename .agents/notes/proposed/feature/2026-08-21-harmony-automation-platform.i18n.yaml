@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/proposed/feature/2026-08-21-harmony-automation-platform.md
-2026-08-21-harmony-automation-platform.md: 08122b9c0bca57a5f78ffacab6809fc74fdedacd
-2026-08-21-harmony-automation-platform.zh.md: b348aaa094ef4260cc2876bc447c6c8aeb3ed59e
+2026-08-21-harmony-automation-platform.md: a8e41ab241146eee06bb63f15c953673ed0181a1
+2026-08-21-harmony-automation-platform.zh.md: 702be1836db8b7a019ba6d26042cf716955c2f75

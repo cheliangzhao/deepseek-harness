@@ -1,7 +1,7 @@
 {
   "name": "@fadinglight/dsh-device-automation",
   "description": "Installable Files and cross-platform device automation workspace",
-  "version": "0.1.0-rc.11",
+  "version": "0.1.0-rc.13",
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
@@ -11,30 +11,34 @@
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
+  "bin": {
+    "dsh-device-automation": "lib/bin.js"
+  },
   "exports": {
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
     "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./bin": { "types": "./lib/types/bin.d.ts", "default": "./lib/bin.js" },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
-  "files": ["lib/index.js", "lib/invariant.js", "cordis.patch.yml", "presets/**", "lib/types/**/*.d.ts"],
+  "files": ["lib/index.js", "lib/invariant.js", "lib/bin.js", "cordis.patch.yml", "presets/**", "scripts/install.sh", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "dependencies": {
-    "@deepseek-ai/dsh-tool-harmonyos-uitest": "workspace:^",
+    "@deepseek-ai/dsh-atomic-write": "workspace:^",
+    "@deepseek-ai/dsh-home-paths": "workspace:^",
+    "@fadinglight/dsh-tool-harmonyos-uitest": "workspace:^",
     "@fadinglight/dsh-client-ui-device-automation": "workspace:^",
     "@fadinglight/dsh-device-automation-harmonyos": "workspace:^",
     "@fadinglight/dsh-device-automation-runtime": "workspace:^"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/dsh-agent-presets": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/dsh-agent-presets": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^"
   }
 }

@@ -1,0 +1,20 @@
+- region "Automation tests":
+  - heading "Automation tests" [level=2]
+  - paragraph: Choose a test case and submit it to the current automation session.
+  - complementary "Test cases":
+    - strong: Test cases
+    - text: Select a workspace file to run
+    - tree "{{cwd}}":
+      - treeitem ".dsh-home" [level=1]
+      - treeitem ".dsh-storages" [level=1]
+      - treeitem "automation-sample.txt 28 B" [level=1] [selected]
+  - main:
+    - strong: automation-sample.txt
+    - code: automation-sample.txt
+    - paragraph: The automation agent reads this file and executes its steps against the connected device.
+    - button "Run test":
+      - img
+      - text: Run test
+    - status:
+      - strong: Test submitted
+      - text: Execution continues in this session. Follow the result in Conversation or Trajectory.

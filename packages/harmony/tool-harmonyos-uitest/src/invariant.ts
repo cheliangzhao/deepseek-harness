@@ -12,4 +12,4 @@ const install: InvariantInstaller = () => {}
  * @param ctx - Cordis context carrying the invariant service.
  * @returns the installed registration's disposer after setup succeeds.
  */
-export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-tool-harmonyos-uitest', install))
+export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@fadinglight/dsh-tool-harmonyos-uitest', install))

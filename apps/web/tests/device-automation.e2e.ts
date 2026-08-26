@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, launchWebScaffold, seedSession, watchConsole,
   webSnapshotMode, type WebScaffold,
@@ -21,6 +22,8 @@ const PREPARATION_PROGRESS_EXPECTED = join(SNAPSHOT_DIR, 'preparation-progress.e
 const HARMONY_READY_EXPECTED = join(SNAPSHOT_DIR, 'harmony-ready.expected.md')
 const FILE_EXPECTED = join(SNAPSHOT_DIR, 'file-open.expected.txt')
 const CLI_MISSING_EXPECTED = join(SNAPSHOT_DIR, 'cli-missing.expected.md')
+const TEST_SUBMITTED_EXPECTED = join(SNAPSHOT_DIR, 'test-submitted.expected.md')
+const TEST_RUN_FIXTURE = join(SNAPSHOT_DIR, 'test-run.jsonl')
 const SCREEN = fileURLToPath(new URL('../../../examples/device-automation/tests/fixtures/screen.png', import.meta.url))
 const CLI_FIXTURE = fileURLToPath(new URL('./fixtures/device-automation-devecocli.mjs', import.meta.url))
 const MODE = webSnapshotMode()
@@ -48,6 +51,7 @@ describe('web e2e: device automation workspace', () => {
   let previousPath: string | undefined
   let previousLog: string | undefined
   let previousScreen: string | undefined
+  const sessionEvents: SessionEvent[] = []
 
   beforeAll(async () => {
     binDirectory = await mkdtemp(join(tmpdir(), 'dsh-device-automation-bin-'))
@@ -62,10 +66,13 @@ describe('web e2e: device automation workspace', () => {
     process.env.DEVICE_AUTOMATION_TEST_LOG = callLog
     process.env.DEVICE_AUTOMATION_TEST_SCREEN = SCREEN
 
-    scaffold = await launchWebScaffold()
+    scaffold = await launchWebScaffold(MODE === 'record' ? {} : { replayFixture: TEST_RUN_FIXTURE })
+    scaffold.ctx.on('session/event', (session, event) => {
+      if (session.id === SESSION_ID) sessionEvents.push(event)
+    })
     expect(await scaffold.ctx.agentPresets.resolve('automation')).toMatchObject({
       id: 'automation',
-      trust: 'system',
+      trust: 'user',
     })
     await writeFile(join(scaffold.workspaceCwd, 'automation-sample.txt'), 'device automation workspace\n', 'utf8')
     await seedSession(scaffold, seedLog(), SESSION_ID, 'automation')
@@ -94,6 +101,7 @@ describe('web e2e: device automation workspace', () => {
   it('maps a browser image point to the retained PNG and snapshots the emitted click argv', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-device-automation-tap'))
     await page.getByText('Standard mode', { exact: true }).waitFor({ timeout: 15_000 })
+    expect(await page.getByRole('tab', { name: 'Automation tests', exact: true }).count()).toBe(0)
     expect(await page.getByRole('complementary', { name: 'Device automation', exact: true }).count()).toBe(0)
     expect(await page.evaluate(() => document.documentElement.style
       .getPropertyValue('--dsh-device-automation-sidebar-width'))).toBe('')
@@ -107,6 +115,7 @@ describe('web e2e: device automation workspace', () => {
     const sidebar = page.getByRole('complementary', { name: 'Device automation', exact: true })
     await sidebar.waitFor({ timeout: 15_000 })
     await sidebar.getByText('Automation test mode', { exact: true }).waitFor({ timeout: 10_000 })
+    await page.getByRole('tab', { name: 'Automation tests', exact: true }).waitFor({ timeout: 10_000 })
     await sidebar.getByRole('progressbar', {
       name: 'Synchronizing HarmonyOS automation skills…', exact: true,
     }).waitFor({ timeout: 10_000 })
@@ -191,6 +200,30 @@ describe('web e2e: device automation workspace', () => {
     await compareOrRefreshGolden(FILE_EXPECTED, (await content.textContent() ?? '').trimEnd(), MODE)
   })
 
+  it('selects a test case and records the submitted automation task', async () => {
+    const testsTab = page.getByRole('tab', { name: 'Automation tests', exact: true })
+    await testsTab.click()
+    const fileRow = page.getByRole('treeitem', { name: /automation-sample\.txt/ })
+    await fileRow.waitFor({ timeout: 15_000 })
+    await fileRow.click()
+    await page.getByRole('button', { name: 'Run test', exact: true }).click()
+    await page.getByRole('status').getByText('Test submitted', { exact: true }).waitFor({ timeout: 15_000 })
+
+    await expect.poll(() => sessionEvents.flatMap(event => event.type === 'user/message'
+      ? event.data.content.flatMap(block => block.type === 'text' ? [block.text] : [])
+      : []).some(text => text.includes(
+      'Run the automation test case at workspace-relative path "automation-sample.txt".',
+    )), { timeout: 15_000 }).toBe(true)
+    await expect.poll(() => sessionEvents.some(event => event.type === 'turn/end'
+      && event.data.turn === 2
+      && event.data.reason.kind === 'completed'), { timeout: 15_000 }).toBe(true)
+    await compareOrRefreshGolden(
+      TEST_SUBMITTED_EXPECTED,
+      await captureStableAria(page, '[aria-label="Automation tests"]', scaffold.workspaceCwd),
+      MODE,
+    )
+  })
+
   it('shows installation guidance when DevEco CLI is unavailable', async () => {
     const emptyPath = await mkdtemp(join(tmpdir(), 'dsh-device-automation-empty-path-'))
     const savedPath = process.env.PATH
@@ -227,6 +260,8 @@ describe('web e2e: device automation workspace', () => {
       'harmony-ready.expected.md',
       'preparation-progress.expected.md',
       'tap-argv.expected.json',
+      'test-submitted.expected.md',
+      'test-run.jsonl',
     ])
   })
 })

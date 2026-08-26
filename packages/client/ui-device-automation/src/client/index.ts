@@ -4,7 +4,9 @@ import { createRoot, type Root } from 'react-dom/client'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
+import { AutomationTestView, type AutomationTestViewInjected } from './AutomationTestView.tsx'
 import type {
   DirectoryListing,
   OpenedFile,
@@ -14,6 +16,7 @@ import type {
 } from './panel.tsx'
 import { en, zh, type DeviceAutomationKey } from './locales.ts'
 import { DeviceAutomationSidebar } from './sidebar.tsx'
+import { buildAutomationTestPrompt } from './test-runner.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -23,7 +26,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 const NS = 'deviceAutomation'
 const CHANNEL = '/device-automation'
-export const inject = ['sessions', 'locale', 'connection']
+const AUTOMATION_PRESET_ID = 'automation'
+export const inject = ['sessions', 'locale', 'connection', 'slots', 'conversation']
 
 /**
  * Mount the automation workspace beside the Web application.
@@ -103,6 +107,67 @@ export function apply(ctx: ClientContext): void {
     }
   }
   const sessions = ctx.sessions
+  ctx.slots.inject('conversation.view', () => {
+    let disposeView: (() => void) | undefined
+    const sync = (): void => {
+      const state = sessions.list.getSnapshot()
+      const current = state.current
+      const visible = current !== undefined
+        && state.byId[current]?.agentPreset === AUTOMATION_PRESET_ID
+      if (visible && disposeView === undefined) {
+        disposeView = ctx.slots.register({
+          name: 'conversation.view',
+          id: 'device-automation-tests',
+          order: 20,
+          locale: NS,
+          label: () => t('automationTests'),
+          inject: (sessionId): AutomationTestViewInjected => {
+            const scoped = sessions.scope(sessionId)
+            if (scoped === undefined) {
+              throw new Error(`ui-device-automation: session ${JSON.stringify(sessionId)} resolved no scope`)
+            }
+            const conversation = scoped.get('conversation')
+            if (conversation === undefined) {
+              throw new Error('ui-device-automation: conversation service unavailable')
+            }
+            return {
+              list,
+              run: async (path, signal) => {
+                const summary = sessions.list.getSnapshot().byId[sessionId]
+                if (summary?.agentPreset !== AUTOMATION_PRESET_ID) {
+                  throw new Error('ui-device-automation: test execution requires an automation session')
+                }
+                const result = await prepare(signal)
+                if (result.status !== 'ready') {
+                  throw new Error('ui-device-automation: DevEco CLI installation is required')
+                }
+                signal.throwIfAborted()
+                await conversation.send(buildAutomationTestPrompt(path))
+              },
+            }
+          },
+        }, AutomationTestView)
+        return
+      }
+      if (!visible && disposeView !== undefined) {
+        const dispose = disposeView
+        disposeView = undefined
+        dispose()
+      }
+    }
+    const unsubscribe = sessions.list.subscribe(sync)
+    try {
+      sync()
+    } catch (error) {
+      unsubscribe()
+      disposeView?.()
+      throw error
+    }
+    return () => {
+      unsubscribe()
+      disposeView?.()
+    }
+  })
   ctx.effect(() => {
     const host = document.createElement('div')
     host.dataset.dshDeviceAutomationHost = ''

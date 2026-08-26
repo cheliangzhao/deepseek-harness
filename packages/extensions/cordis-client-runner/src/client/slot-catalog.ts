@@ -1137,6 +1137,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     declaredBy: 'an entry in \'conversation.session\' (client-ui-conversation), so it exists while that entry is mounted',
     occupants: [
       'client-ui-conversation ChatView id \'chat\'',
+      '@fadinglight/dsh-client-ui-device-automation AutomationTestView id \'device-automation-tests\'',
       'client-ui-trajectory TrajectoryView id \'trajectory\'',
     ],
     replaceRisk: 'none',

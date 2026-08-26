@@ -261,7 +261,7 @@
 # injects nothing the preset owns, so it needs no realm. Command knowledge
 # stays in the deveco-cli skill above; the tool only enforces the allow-list.
 - id: tool-harmonyos-uitest
-  name: '@deepseek-ai/dsh-tool-harmonyos-uitest'
+  name: '@fadinglight/dsh-tool-harmonyos-uitest'
 
 # ── remaining model-facing rows ─────────────────────────────────────────────
 

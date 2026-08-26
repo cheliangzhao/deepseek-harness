@@ -104,6 +104,8 @@ export function webSnapshotMode(): WebSnapshotMode {
 const BASE_PATCH_PATH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH_PATH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 const DEVICE_AUTOMATION_PATCH_PATH = join(REPO_ROOT, 'packages/device/device-automation/cordis.patch.yml')
+/** Bundle content copied into the user preset roster by the published CLI. */
+const AUTOMATION_PRESET_ROOT = join(REPO_ROOT, 'packages/device/device-automation/presets')
 /** The installation anchor whose dependency surface the profile module fallback mirrors. */
 const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 /** The deployment's own agent-preset root, shipped beside the app's config. */
@@ -414,13 +416,16 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // chooses it. This lane boots the shipped tree WITHOUT AppCLIEntry, so it
     // has to supply the same fact or the roster resolves nothing and every
     // session composes an agent with no tools, no persona, and no token meter.
-    // Only the shipped root: a developer's own `~/.dsh/.agent-presets` must not be
-    // able to change a golden.
+    // Add only the exact automation content that the Bundle installer copies;
+    // a developer's own home must not be able to change a golden.
     {
       id: 'agent-presets',
       config: {
         default: 'standard',
-        roots: [{ path: SHIPPED_PRESET_DIR, trust: 'system' }],
+        roots: [
+          { path: SHIPPED_PRESET_DIR, trust: 'system' },
+          { path: AUTOMATION_PRESET_ROOT, trust: 'user' },
+        ],
         includeUserRoot: false,
       },
     },

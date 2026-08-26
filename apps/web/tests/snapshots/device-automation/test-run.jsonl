@@ -1,0 +1,7 @@
+{"type":"session","version":0,"id":"{{sessionId}}","createdAt":1787732980000,"cwd":"{{cwd}}","agentPreset":"automation"}
+{"type":"user/message","data":{"content":[{"type":"text","text":"Run the automation test case at workspace-relative path \"automation-sample.txt\".\n\nRead the complete file before acting. Treat its contents as the test case steps and data. Use the installed HarmonyOS automation Skills and DevEco CLI UI automation commands against the currently connected authorized device.\n\nAfter execution, report the steps performed, passed and failed checks, relevant device errors or logs, and concrete follow-up actions. Do not modify the test case unless it explicitly asks for an edit."}],"source":{"kind":"user","rpcId":"{{rpcId}}"}},"surfaceOp":"append"}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"text-delta","index":0,"text":"Automation test fixture completed."}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"Automation test fixture completed."}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"usage","usage":{"inputTokens":64,"outputTokens":6}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}

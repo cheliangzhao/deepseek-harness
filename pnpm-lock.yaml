@@ -21,6 +21,9 @@ importers:
       '@deepseek-ai/dsh-tool-session-query':
         specifier: workspace:^
         version: link:packages/session-query/tool-session-query
+      '@fadinglight/dsh-tool-harmonyos-uitest':
+        specifier: workspace:^
+        version: link:packages/harmony/tool-harmonyos-uitest
       '@stylistic/eslint-plugin':
         specifier: ^5.10.0
         version: 5.10.0(eslint@10.5.0(jiti@2.7.0))
@@ -688,9 +691,6 @@ importers:
       '@deepseek-ai/dsh-tool-goal':
         specifier: workspace:*
         version: link:../packages/goal/tool-goal
-      '@deepseek-ai/dsh-tool-harmonyos-uitest':
-        specifier: workspace:*
-        version: link:../packages/harmony/tool-harmonyos-uitest
       '@deepseek-ai/dsh-tool-jobs':
         specifier: workspace:*
         version: link:../packages/jobs/tool-jobs
@@ -754,6 +754,9 @@ importers:
       '@deepseek-ai/dsh-workflow-worker-thread':
         specifier: workspace:*
         version: link:../packages/workflow/workflow-worker-thread
+      '@fadinglight/dsh-tool-harmonyos-uitest':
+        specifier: workspace:*
+        version: link:../packages/harmony/tool-harmonyos-uitest
 
   native/landlock-run:
     devDependencies:
@@ -2009,6 +2012,9 @@ importers:
       '@deepseek-ai/dsh-client-runtime':
         specifier: workspace:^
         version: link:../runtime
+      '@deepseek-ai/dsh-client-ui-conversation':
+        specifier: workspace:^
+        version: link:../ui-conversation
       '@deepseek-ai/dsh-client-ui-primitives':
         specifier: workspace:^
         version: link:../ui-primitives
@@ -3910,9 +3916,12 @@ importers:
 
   packages/device/device-automation:
     dependencies:
-      '@deepseek-ai/dsh-tool-harmonyos-uitest':
+      '@deepseek-ai/dsh-atomic-write':
         specifier: workspace:^
-        version: link:../../harmony/tool-harmonyos-uitest
+        version: link:../../util/atomic-write
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
       '@fadinglight/dsh-client-ui-device-automation':
         specifier: workspace:^
         version: link:../../client/ui-device-automation
@@ -3922,19 +3931,22 @@ importers:
       '@fadinglight/dsh-device-automation-runtime':
         specifier: workspace:^
         version: link:../device-automation-runtime
+      '@fadinglight/dsh-tool-harmonyos-uitest':
+        specifier: workspace:^
+        version: link:../../harmony/tool-harmonyos-uitest
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-agent-presets':
-        specifier: workspace:^
-        version: link:../../preset/agent-presets
       '@deepseek-ai/dsh-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
 
   packages/device/device-automation-harmonyos:
     dependencies:
+      '@deepseek-ai/dsh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
       '@deepseek-ai/dsh-home-paths':
         specifier: workspace:^
         version: link:../../util/home-paths
@@ -9114,9 +9126,6 @@ importers:
       '@deepseek-ai/dsh-tool-goal':
         specifier: workspace:^
         version: link:../../packages/goal/tool-goal
-      '@deepseek-ai/dsh-tool-harmonyos-uitest':
-        specifier: workspace:^
-        version: link:../../packages/harmony/tool-harmonyos-uitest
       '@deepseek-ai/dsh-tool-jobs':
         specifier: workspace:^
         version: link:../../packages/jobs/tool-jobs
@@ -9180,6 +9189,9 @@ importers:
       '@deepseek-ai/schemastery':
         specifier: link:../../vendor/schemastery
         version: link:../../vendor/schemastery
+      '@fadinglight/dsh-tool-harmonyos-uitest':
+        specifier: workspace:^
+        version: link:../../packages/harmony/tool-harmonyos-uitest
 
   vendor/cordis:
     dependencies:

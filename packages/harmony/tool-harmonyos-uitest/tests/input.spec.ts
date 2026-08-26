@@ -5,8 +5,8 @@ import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import * as ToolUitest from '@deepseek-ai/dsh-tool-harmonyos-uitest'
-import { DevEcoCliError, runDevEcoCli, validateDevEcoCliArgv } from '@deepseek-ai/dsh-tool-harmonyos-uitest'
+import * as ToolUitest from '@fadinglight/dsh-tool-harmonyos-uitest'
+import { DevEcoCliError, runDevEcoCli, validateDevEcoCliArgv } from '@fadinglight/dsh-tool-harmonyos-uitest'
 
 const contexts: Context[] = []
 

@@ -1,4 +1,4 @@
-# @deepseek-ai/dsh-tool-harmonyos-uitest
+# @fadinglight/dsh-tool-harmonyos-uitest
 
 [English](README.md) | 中文
 

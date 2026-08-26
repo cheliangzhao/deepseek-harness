@@ -61,6 +61,7 @@
 .treeBranch > .treeBranch { margin-left: 0; }
 .fileRow { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; column-gap: 6px; align-items: center; width: 100%; height: 32px; padding: 0 8px 0 calc(8px + (var(--tree-depth) - 1) * 22px); border: 0; border-radius: 8px; background: transparent; color: var(--dsw-alias-label-primary); font-size: 14px; line-height: 20px; text-align: left; cursor: pointer; transition: background 150ms var(--ds-ease-in-out); }
 .fileRow:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.fileRow[data-selected] { background: var(--dsw-specific-sidebar-nav-item-active); color: var(--dsw-alias-state-business-primary); }
 .fileRow > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fileRow small { color: var(--dsw-alias-label-tertiary); font-size: 9px; }
 .treeSlot { position: relative; display: inline-flex; width: 16px; height: 20px; align-items: center; justify-content: center; }

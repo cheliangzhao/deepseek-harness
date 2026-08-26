@@ -48,6 +48,8 @@
       "@fadinglight/dsh-client-ui-device-automation": ["./packages/client/ui-device-automation/src/index.ts"],
       "@fadinglight/dsh-client-ui-device-automation/client": ["./packages/client/ui-device-automation/src/client/index.ts"],
       "@fadinglight/dsh-client-ui-device-automation/invariant": ["./packages/client/ui-device-automation/src/invariant.ts"],
+      "@fadinglight/dsh-tool-harmonyos-uitest": ["./packages/harmony/tool-harmonyos-uitest/src/index.ts"],
+      "@fadinglight/dsh-tool-harmonyos-uitest/invariant": ["./packages/harmony/tool-harmonyos-uitest/src/invariant.ts"],
       "@deepseek-ai/dsh-tool-call-timeout-policy": ["./packages/guard/timeout-policy/src"],
       "@deepseek-ai/dsh-tool-call-timeout-policy/invariant": ["./packages/guard/timeout-policy/src/invariant.ts"],
       "@deepseek-ai/dsh-typert-registry": ["./packages/typert/registry/src/index.ts"],

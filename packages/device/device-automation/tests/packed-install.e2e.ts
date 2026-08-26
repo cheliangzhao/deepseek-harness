@@ -1,7 +1,7 @@
 /** Packed-plugin installation rehearsal against a fresh DSH profile. */
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -15,6 +15,7 @@ const packageDirectories = [
   'packages/device/device-automation-harmonyos',
   'packages/device/device-automation',
   'packages/harmony/tool-harmonyos-uitest',
+  'packages/util/atomic-write',
   'packages/util/home-paths',
   'vendor/cosmokit',
   'vendor/schemastery',
@@ -62,7 +63,8 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
         '@fadinglight/dsh-client-ui-device-automation',
         '@fadinglight/dsh-device-automation-runtime',
         '@fadinglight/dsh-device-automation-harmonyos',
-        '@deepseek-ai/dsh-tool-harmonyos-uitest',
+        '@fadinglight/dsh-tool-harmonyos-uitest',
+        '@deepseek-ai/dsh-atomic-write',
         '@deepseek-ai/dsh-home-paths',
         '@deepseek-ai/cosmokit',
         '@deepseek-ai/schemastery',
@@ -104,7 +106,6 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
         profileDirectory, 'node_modules/@fadinglight/dsh-device-automation/cordis.patch.yml',
       ), 'utf8')
       expect([...installedPatch.matchAll(/^\s+name: '([^']+)'$/gmu)].map(match => match[1])).toEqual([
-        '@fadinglight/dsh-device-automation',
         '@fadinglight/dsh-device-automation-runtime',
         '@fadinglight/dsh-device-automation-harmonyos',
         '@fadinglight/dsh-client-ui-device-automation',
@@ -112,47 +113,28 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
 
       const dumped = run(process.execPath, [builtBin, '--profile', 'clean', '--dump-default-config'], root, environment)
       expect(dumped).toContain('# == @fadinglight/dsh-device-automation')
-      expect(dumped).toContain("name: '@fadinglight/dsh-device-automation'")
+      expect(dumped).not.toContain("name: '@fadinglight/dsh-device-automation'")
       expect(dumped).toContain("name: '@fadinglight/dsh-device-automation-runtime'")
       expect(dumped).toContain("name: '@fadinglight/dsh-device-automation-harmonyos'")
       expect(dumped).toContain("name: '@fadinglight/dsh-client-ui-device-automation'")
 
       const installedPackage = join(profileDirectory, 'node_modules/@fadinglight/dsh-device-automation')
-      const registrarProbe = run(process.execPath, ['--input-type=module', '--eval', `
-        const { readFileSync } = await import('node:fs')
-        const { join } = await import('node:path')
-        const bundle = await import(${JSON.stringify(pathToFileURL(join(installedPackage, 'lib/index.js')).href)})
-        let registeredRoot
-        let disposed = false
-        let dispose
-        bundle.apply({
-          agentPresets: {
-            registerSystemRoot(path) {
-              registeredRoot = path
-              return () => { disposed = true }
-            },
-          },
-          effect(register) { dispose = register() },
-        })
-        const metadata = readFileSync(join(registeredRoot, 'automation', 'preset.yml'), 'utf8')
-        const composition = readFileSync(join(registeredRoot, 'automation', 'agent.cordis.yml'), 'utf8')
-        const skill = readFileSync(join(registeredRoot, 'automation', 'skills', 'deveco-cli', 'SKILL.md'), 'utf8')
-        dispose()
-        console.log(JSON.stringify({ registeredRoot, metadata, composition, skill, disposed }))
-      `], profileDirectory)
-      const registered = JSON.parse(registrarProbe) as {
-        registeredRoot: string
-        metadata: string
-        composition: string
-        skill: string
-        disposed: boolean
-      }
-      expect(realpathSync(registered.registeredRoot)).toBe(realpathSync(join(installedPackage, 'presets')))
-      expect(registered.metadata).toContain('name: 自动化测试模式')
-      expect(registered.composition).toContain("name: '@deepseek-ai/dsh-tool-harmonyos-uitest'")
-      expect(registered.composition).toContain("'device-automation', 'skills'")
-      expect(registered.skill).toContain('name: deveco-cli')
-      expect(registered.disposed).toBe(true)
+      expect(readFileSync(join(installedPackage, 'scripts/install.sh'), 'utf8'))
+        .toContain('version="${1:-0.1.0-rc.13}"')
+      const installedBin = join(installedPackage, 'lib/bin.js')
+      expect(run(process.execPath, [installedBin, 'preset', 'install'], profileDirectory, environment))
+        .toContain('Automation preset installed')
+      const installedPreset = join(dshHome, '.agent-presets', 'automation')
+      expect(readFileSync(join(installedPreset, 'preset.yml'), 'utf8')).toContain('name: 自动化测试模式')
+      const composition = readFileSync(join(installedPreset, 'agent.cordis.yml'), 'utf8')
+      expect(composition).toContain("name: '@fadinglight/dsh-tool-harmonyos-uitest'")
+      expect(composition).toContain("'device-automation', 'skills'")
+      expect(readFileSync(join(installedPreset, 'skills/deveco-cli/SKILL.md'), 'utf8'))
+        .toContain('name: deveco-cli')
+      expect(readFileSync(join(installedPreset, '.fadinglight-device-automation.json'), 'utf8'))
+        .toContain('@fadinglight/dsh-device-automation')
+      expect(run(process.execPath, [installedBin, 'preset', 'status'], profileDirectory, environment))
+        .toContain('Automation preset is current')
     } finally {
       rmSync(root, { recursive: true, force: true })
     }

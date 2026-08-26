@@ -1,15 +1,13 @@
 /** Files and live-device presentation for an automation session. */
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import {
   IconChevronLeftOutline14,
   IconChecklistOutline14,
-  IconCodeOutline16,
   IconFolderClose16,
-  IconFolderOpen16,
   IconFollowsystemOutline16,
-  IconTriangleRightFill14,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { DeviceAutomationKey } from './locales.ts'
+import { WorkspaceFileTree } from './file-tree.tsx'
 import css from './panel.module.css'
 
 export interface ScreenshotFrame {
@@ -179,28 +177,9 @@ export function FilesPanel({ sessionId, t, list, read }: {
   list: (sessionId: string, path: string | undefined, signal: AbortSignal) => Promise<DirectoryListing>
   read: (sessionId: string, path: string, signal: AbortSignal) => Promise<OpenedFile>
 }) {
-  const [root, setRoot] = useState<DirectoryListing>()
-  const [directories, setDirectories] = useState<ReadonlyMap<string, DirectoryListing>>(new Map())
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
-  const [loading, setLoading] = useState<ReadonlySet<string>>(new Set())
-  const [directoryErrors, setDirectoryErrors] = useState<ReadonlyMap<string, string>>(new Map())
   const [file, setFile] = useState<OpenedFile>()
   const [fileError, setFileError] = useState<string>()
   const [openingPath, setOpeningPath] = useState<string>()
-  const controllers = useRef(new Map<string, AbortController>())
-
-  useEffect(() => {
-    const controller = new AbortController()
-    void list(sessionId, undefined, controller.signal).then((value) => {
-      if (!controller.signal.aborted) setRoot(value)
-    }, () => {
-      if (!controller.signal.aborted) setDirectoryErrors(current => new Map(current).set('__root__', t('directoryError')))
-    })
-    return () => {
-      controller.abort()
-      for (const pending of controllers.current.values()) pending.abort()
-    }
-  }, [list, sessionId, t])
 
   useEffect(() => {
     if (openingPath === undefined) return
@@ -211,34 +190,6 @@ export function FilesPanel({ sessionId, t, list, read }: {
     })
     return () => { controller.abort() }
   }, [openingPath, read, sessionId, t])
-
-  const expandDirectory = (path: string): void => {
-    if (expanded.has(path)) {
-      setExpanded((current) => {
-        const next = new Set(current)
-        next.delete(path)
-        return next
-      })
-      return
-    }
-    setExpanded(current => new Set(current).add(path))
-    if (directories.has(path) || controllers.current.has(path)) return
-    const controller = new AbortController()
-    controllers.current.set(path, controller)
-    setLoading(current => new Set(current).add(path))
-    void list(sessionId, path, controller.signal).then((value) => {
-      if (!controller.signal.aborted) setDirectories(current => new Map(current).set(path, value))
-    }, () => {
-      if (!controller.signal.aborted) setDirectoryErrors(current => new Map(current).set(path, t('directoryError')))
-    }).finally(() => {
-      controllers.current.delete(path)
-      setLoading((current) => {
-        const next = new Set(current)
-        next.delete(path)
-        return next
-      })
-    })
-  }
 
   const openFile = (path: string): void => { setOpeningPath(path) }
 
@@ -257,91 +208,13 @@ export function FilesPanel({ sessionId, t, list, read }: {
   return <section className={css.filesPane}>
     <div className={css.fileBar}>
       <div className={css.fileIdentity}>
-        <strong>{root === undefined ? t('loading') : '.'}</strong>
-        <span>{root?.path ?? ''}</span>
+        <strong>.</strong>
+        <span>{t('workspaceFiles')}</span>
       </div>
     </div>
-    {directoryErrors.get('__root__') !== undefined && <div className={css.inlineError} role="alert">{directoryErrors.get('__root__')}</div>}
     {fileError !== undefined && <div className={css.inlineError} role="alert">{fileError}</div>}
-    {root !== undefined && <div className={css.fileTree} role="tree" aria-label={root.path}>
-      <TreeDirectory
-        listing={root}
-        depth={1}
-        expanded={expanded}
-        loading={loading}
-        directories={directories}
-        errors={directoryErrors}
-        onDirectory={expandDirectory}
-        onFile={openFile}
-        t={t}
-      />
-    </div>}
+    <WorkspaceFileTree sessionId={sessionId} t={t} list={list} selectedPath={undefined} onFile={(entry) => { openFile(entry.path) }} />
   </section>
-}
-
-function TreeDirectory({ listing, depth, expanded, loading, directories, errors, onDirectory, onFile, t }: {
-  listing: DirectoryListing
-  depth: number
-  expanded: ReadonlySet<string>
-  loading: ReadonlySet<string>
-  directories: ReadonlyMap<string, DirectoryListing>
-  errors: ReadonlyMap<string, string>
-  onDirectory: (path: string) => void
-  onFile: (path: string) => void
-  t: Translate
-}) {
-  const entries = [...listing.entries].sort((left, right) => left.type === right.type ? 0 : left.type === 'directory' ? -1 : 1)
-  return <>
-    {entries.map((entry) => {
-      const directory = entry.type === 'directory' ? directories.get(entry.path) : undefined
-      return <div className={css.treeBranch} key={entry.path}>
-        <button
-          type="button"
-          role="treeitem"
-          aria-level={depth}
-          aria-expanded={entry.type === 'directory' ? expanded.has(entry.path) : undefined}
-          className={css.fileRow}
-          style={{ '--tree-depth': depth } as CSSProperties}
-          onClick={() => {
-            if (entry.type === 'directory') onDirectory(entry.path)
-            else onFile(entry.path)
-          }}
-        >
-          <span className={css.treeSlot} aria-hidden="true">
-            {entry.type === 'directory'
-              ? <>
-                <span className={css.treeFolder} data-expanded={expanded.has(entry.path) || undefined}>
-                  {expanded.has(entry.path) ? <IconFolderOpen16 /> : <IconFolderClose16 />}
-                </span>
-                <span className={css.treeChevron} data-expanded={expanded.has(entry.path) || undefined}>
-                  <IconTriangleRightFill14 />
-                </span>
-              </>
-              : <span className={css.fileGlyph}><IconCodeOutline16 /></span>}
-          </span>
-          <span>{entry.name}</span>
-          {entry.size !== undefined && <small>{formatBytes(entry.size)}</small>}
-        </button>
-        {entry.type === 'directory' && expanded.has(entry.path) && loading.has(entry.path) && <div className={css.treeMessage}>{t('loading')}</div>}
-        {entry.type === 'directory' && expanded.has(entry.path) && directory !== undefined && <TreeDirectory
-          listing={directory}
-          depth={depth + 1}
-          expanded={expanded}
-          loading={loading}
-          directories={directories}
-          errors={errors}
-          onDirectory={onDirectory}
-          onFile={onFile}
-          t={t}
-        />}
-        {entry.type === 'directory' && expanded.has(entry.path) && errors.get(entry.path) !== undefined && <div className={css.inlineError} role="alert">{errors.get(entry.path)}</div>}
-        {entry.type === 'directory' && expanded.has(entry.path) && directory?.entries.length === 0 && <div className={css.treeMessage}>{t('emptyDirectory')}</div>}
-        {entry.type === 'directory' && expanded.has(entry.path) && directory?.truncated === true && <div className={css.treeMessage}>{t('truncated')}</div>}
-      </div>
-    })}
-    {entries.length === 0 && <div className={css.emptyFiles}>{t('emptyDirectory')}</div>}
-    {listing.truncated && <div className={css.truncated}>{t('truncated')}</div>}
-  </>
 }
 
 /**
@@ -512,10 +385,4 @@ function PreparationPanel({ preparation, retry, t }: {
       <button type="button" onClick={retry}>{t('retry')}</button>
     </div>
   </div>
-}
-
-function formatBytes(value: number): string {
-  if (value < 1024) return `${value} B`
-  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }

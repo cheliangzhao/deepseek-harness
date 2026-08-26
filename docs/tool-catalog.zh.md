@@ -44,7 +44,7 @@
 | `@deepseek-ai/dsh-experimental-tool-agent-team` | `followup_task`、`interrupt_agent`、`list_agents`、`send_message`、`spawn_teammate`、`team_task_create`、`team_task_get`、`team_task_list`、`team_task_update`、`wait_agent` | `ctx.tools`、`ctx.systemPrompt`、`ctx.agentTeams`、`an exact live Team member Agent` | `tool/call`、`team/member`、`team/message/queued`、`team/message/delivered`、`team/task`、`tool/result` | - | 这 10 个工具限定于隐式 Team Lead 与持久 teammate 作用域。随产品发布的 dsh-base bundle 默认禁用该包；文档中的 Agent Teams profile patch 会启用它，并禁用旧 continuable child 的同名控制工具。 |
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`、`owning Agent session` | `tool/call`、`todo/write`、`tool/result` | - | todo_write 是会话所有的状态；UI 将最新的 todo/write 事件渲染为检查清单。`allowParallelInProgress` 是没有默认值的必填项，因此本目录明确选择 `true`，对应描述允许同时存在多个 `in_progress` 项。选择 `false` 的部署会获得同一工具，但描述会要求只能有 1 个活动任务。 |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`、`ctx.workflowEngine`、`ctx.systemPrompt`、`a calling Agent (exec.agent parents the script children)` | `tool/call`、`tool/result` | - | - |
-| `@deepseek-ai/dsh-tool-harmonyos-uitest` | `devecocli` | `ctx.tools`、`ctx.subprocess`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | 已安装的 deveco-cli skill 拥有命令指导；工具仅以普通 argv 接受 skill 记录的顶层命令族。 |
+| `@fadinglight/dsh-tool-harmonyos-uitest` | `devecocli` | `ctx.tools`、`ctx.subprocess`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | 已安装的 deveco-cli skill 拥有命令指导；工具仅以普通 argv 接受 skill 记录的顶层命令族。 |
 | `@deepseek-ai/dsh-tool-web` | `web_fetch`、`web_search` | `ctx.tools`、`ctx.web`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | web_search 和 web_fetch 将提供方选择置于 ctx.web 之后，使模型可见 schema 在更换后端时保持稳定。 |
 
 <a id="deepseek-aidsh-tool-ask-user"></a>
@@ -2180,7 +2180,7 @@ todo_write 是会话所有的状态；UI 将最新的 todo/write 事件渲染为
 
 <a id="deepseek-aidsh-tool-harmonyos-uitest"></a>
 
-## `@deepseek-ai/dsh-tool-harmonyos-uitest`
+## `@fadinglight/dsh-tool-harmonyos-uitest`
 
 ### `devecocli`
 

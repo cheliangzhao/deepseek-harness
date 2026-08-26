@@ -66,7 +66,7 @@ import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
 import VmWorkflowEngine from '@deepseek-ai/dsh-workflow-worker-thread'
 import * as ToolRalph from '@deepseek-ai/dsh-tool-ralph'
 import * as ToolWorkflow from '@deepseek-ai/dsh-tool-workflow'
-import * as ToolUitest from '@deepseek-ai/dsh-tool-harmonyos-uitest'
+import * as ToolUitest from '@fadinglight/dsh-tool-harmonyos-uitest'
 import { githubSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
@@ -591,7 +591,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
   },
   {
-    pkg: '@deepseek-ai/dsh-tool-harmonyos-uitest',
+    pkg: '@fadinglight/dsh-tool-harmonyos-uitest',
     dir: 'tool-harmonyos-uitest',
     source: 'packages/harmony/tool-harmonyos-uitest/src/index.ts',
     requires: ['ctx.tools', 'ctx.subprocess', 'ctx.systemPrompt'],

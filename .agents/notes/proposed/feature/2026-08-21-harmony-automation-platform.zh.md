@@ -25,7 +25,7 @@ Status: proposed
 
 ### P3 — 自动化测试模式 preset
 
-- `apps/cli/config/agent-presets/automation/agent.cordis.yml` — standard 基座加 harmony 行；**发布服务的行必须放 `isolate` realm 组**（presets 插件拒绝根 realm 的服务行）；测试 persona。`preset.yml`：`name: 自动化测试模式`、`order: 5`。目录发现机制使模式零后端代码出现。
+- `packages/device/device-automation/presets/automation/agent.cordis.yml` — standard 基座加 harmony 行；**发布服务的行必须放 `isolate` realm 组**（presets 插件拒绝根 realm 的服务行）；测试 persona。`preset.yml`：`name: 自动化测试模式`、`order: 5`。Bundle 的显式 CLI 按[外部 Bundle preset 安装决策](../../implemented/architecture/2026-08-26-external-bundle-user-preset-installation.zh.md)将其复制到用户 roster。
 - `packages/client/ui-agent-preset/src/client/locales.ts` — `presetAutomationName/Description` 键、中英文案、`BUILT_IN_PRESET_KEYS` 条目；e2e/snapshot 更新。
 
 ### P4 — 设备画面预览
