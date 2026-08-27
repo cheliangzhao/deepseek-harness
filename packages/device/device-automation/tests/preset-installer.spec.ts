@@ -41,10 +41,10 @@ describe('device automation preset installer', () => {
     await expect(lstat(target(home))).rejects.toMatchObject({ code: 'ENOENT' })
 
     await expect(installAutomationPreset({ dshHome: home })).resolves.toMatchObject({
-      action: 'installed', path: target(home), version: '0.1.0-rc.13',
+      action: 'installed', path: target(home), version: '0.1.0-rc.14',
     })
     await expect(inspectAutomationPreset({ dshHome: home })).resolves.toEqual({
-      state: 'installed', path: target(home), installedVersion: '0.1.0-rc.13', current: true,
+      state: 'installed', path: target(home), installedVersion: '0.1.0-rc.14', current: true,
     })
     expect(await readFile(join(target(home), 'preset.yml'), 'utf8')).toContain('name: 自动化测试模式')
     expect((await lstat(target(home))).mode & 0o777).toBe(0o700)

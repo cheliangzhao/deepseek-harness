@@ -1,7 +1,7 @@
 {
   "name": "@fadinglight/dsh-device-automation",
   "description": "Installable Files and cross-platform device automation workspace",
-  "version": "0.1.0-rc.13",
+  "version": "0.1.0-rc.14",
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",

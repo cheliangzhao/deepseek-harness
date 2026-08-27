@@ -120,7 +120,7 @@ describe.skipIf(!packable)('device automation: packed installation', () => {
 
       const installedPackage = join(profileDirectory, 'node_modules/@fadinglight/dsh-device-automation')
       expect(readFileSync(join(installedPackage, 'scripts/install.sh'), 'utf8'))
-        .toContain('version="${1:-0.1.0-rc.13}"')
+        .toContain('version="${1:-0.1.0-rc.14}"')
       const installedBin = join(installedPackage, 'lib/bin.js')
       expect(run(process.execPath, [installedBin, 'preset', 'install'], profileDirectory, environment))
         .toContain('Automation preset installed')

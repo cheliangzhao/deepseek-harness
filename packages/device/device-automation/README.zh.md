@@ -8,7 +8,7 @@
 
 ## 安装
 
-macOS 与 Linux 安装脚本会把 Bundle 加入 Web profile 并同步 preset；可选参数是 npm 版本或 tag，默认使用精确版本 `0.1.0-rc.13`。固定版本可避免 Profile 的最短发布时间策略把刚更新的 dist-tag 解析为旧 Bundle：
+macOS 与 Linux 安装脚本会把 Bundle 加入 Web profile 并同步 preset；可选参数是 npm 版本或 tag，默认使用精确版本 `0.1.0-rc.14`。固定版本可避免 Profile 的最短发布时间策略把刚更新的 dist-tag 解析为旧 Bundle：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/cheliangzhao/deepseek-harness/main/packages/device/device-automation/scripts/install.sh | bash
@@ -17,7 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/cheliangzhao/deepseek-harness/main/
 对应的显式命令如下，Windows 也使用这组命令：
 
 ```sh
-dsh plugin --profile web add @fadinglight/dsh-device-automation@0.1.0-rc.13
+dsh plugin --profile web add @fadinglight/dsh-device-automation@0.1.0-rc.14
 dsh plugin --profile web exec dsh-device-automation preset install
 ```
 

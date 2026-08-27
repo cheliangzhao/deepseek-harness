@@ -127,7 +127,7 @@ describe('HarmonyOS device provider', () => {
       home, 'device-automation', 'skills', '.fadinglight-device-automation-skills.json',
     ), 'utf8'))).toMatchObject({
       version: 2,
-      providerVersion: '0.1.0-rc.12',
+      providerVersion: '0.1.0-rc.13',
       skills: AUTOMATION_MODE_SKILLS,
       synchronizedAt: expect.any(String),
     })

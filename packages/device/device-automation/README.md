@@ -8,7 +8,7 @@ The Bundle is the publishing and installation unit. Its `@fadinglight/*` package
 
 ## Installation
 
-The macOS and Linux installer adds the Bundle to the Web profile and synchronizes the preset; its optional argument is an npm version or tag and defaults to the exact release `0.1.0-rc.13`. Pinning avoids a Profile's minimum-release-age policy resolving a fresh dist-tag to an older Bundle:
+The macOS and Linux installer adds the Bundle to the Web profile and synchronizes the preset; its optional argument is an npm version or tag and defaults to the exact release `0.1.0-rc.14`. Pinning avoids a Profile's minimum-release-age policy resolving a fresh dist-tag to an older Bundle:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/cheliangzhao/deepseek-harness/main/packages/device/device-automation/scripts/install.sh | bash
@@ -17,7 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/cheliangzhao/deepseek-harness/main/
 The equivalent explicit commands, also used on Windows, are:
 
 ```sh
-dsh plugin --profile web add @fadinglight/dsh-device-automation@0.1.0-rc.13
+dsh plugin --profile web add @fadinglight/dsh-device-automation@0.1.0-rc.14
 dsh plugin --profile web exec dsh-device-automation preset install
 ```
 

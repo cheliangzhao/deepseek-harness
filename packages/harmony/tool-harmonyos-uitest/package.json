@@ -1,7 +1,7 @@
 {
   "name": "@fadinglight/dsh-tool-harmonyos-uitest",
   "description": "Model-facing generic devecocli runner for the command families documented by the bundled HarmonyOS automation skill",
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0-rc.3",
   "publishConfig": {
     "access": "public"
   },

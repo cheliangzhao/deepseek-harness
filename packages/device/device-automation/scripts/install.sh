@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="${1:-0.1.0-rc.13}"
+version="${1:-0.1.0-rc.14}"
 if [[ "$version" == -* ]] || [[ "$version" == *[[:space:]]* ]]; then
   printf 'Usage: install.sh [npm-version-or-tag]\n' >&2
   exit 2
